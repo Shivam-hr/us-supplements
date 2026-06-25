@@ -12,14 +12,14 @@ export function CartProvider({ children }) {
       if (existing) {
         return prev.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + quantity } 
             : item
         )
       }
       return [...prev, { ...product, quantity }]
     })
   }
-
+  
   const removeFromCart = (productId) => {
     setCartItems(prev => prev.filter(item => item.id !== productId))
   }

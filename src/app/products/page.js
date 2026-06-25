@@ -59,7 +59,7 @@ const sortOptions = [
   { label: 'Name A-Z', value: 'name' },
 ]
 
-export default function ProductsPage() {
+export default function ProductsPage() {  
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedBrands, setSelectedBrands] = useState([])
   const [sort, setSort] = useState('relevance')

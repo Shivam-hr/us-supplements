@@ -53,7 +53,8 @@ const brandLogos = [
   // { name: 'Ultimate Nutrition', image: 'https://logo.clearbit.com/ultimatenutrition.com' }, // Still using API
   // { name: 'Cellucor', image: 'https://logo.clearbit.com/cellucor.com' }, // Still using API
   // { name: 'Atom', image: '/images/logo/a' }, // Still using API
-];
+]
+
 const whyUs = [
   { icon: '✅', title: '100% Authentic', desc: 'Sourced directly from brands. Every product verified.' },
   { icon: '🚚', title: 'Free Delivery', desc: 'Free shipping on prepaid orders above ₹499.' },
@@ -61,7 +62,7 @@ const whyUs = [
   { icon: '🔒', title: 'Secure Payments', desc: 'Razorpay powered. UPI, cards, net banking accepted.' },
 ]
 
-function ProductCard({ product }) {
+function ProductCard({ product , showBrand}) {
   const discount = Math.round((product.mrp - product.price) / product.mrp * 100)
   return (
     <Link href={`/products/${product.id}`}>
@@ -71,7 +72,11 @@ function ProductCard({ product }) {
           alt={product.name}
           className="h-52 w-full object-contain rounded-xl mb-4 group-hover:scale-105 transition-transform"
         />
-        <p className="text-xs text-gray-400 mb-1">{product.brand}</p>
+        {showBrand && (
+          <p className="text-xs text-gray-400 mb-1">{product.brand}</p>
+        )}
+        
+        
         {product.badge && (
           <span className={`inline-block text-xs px-2.5 py-0.5 rounded-full font-semibold mb-2 ${product.badge === 'New' ? 'bg-[#1A1A1A] text-[#C6FF1E]' : 'bg-[#C6FF1E] text-[#1A1A1A]'}`}>
             {product.badge}
@@ -200,15 +205,15 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-4 gap-5">
           {featuredProducts.slice(0, 4).map(p => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} showBrand={true} />
           ))}
         </div>
       </div>
 
       {/* SHOP BY BRAND */}
       <div className="px-16 py-10 bg-gray-50 mt-8">
-  <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-6">Shop by brand</p>
-  <div className="grid grid-cols-6 gap-4">
+    <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-6">Shop by brand</p>
+    <div className="grid grid-cols-6 gap-4">
     {brandLogos.map(brand => (
       <div key={brand.name} className="bg-white border border-gray-100 rounded-2xl h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#C6FF1E] hover:shadow-sm transition-all px-3 group">
         {brand.image ? (
@@ -228,7 +233,7 @@ export default function Home() {
       </div>
     ))}
   </div>
-</div>
+  </div>
 
       {/* DEAL OF THE DAY */}
       <div className="mx-16 my-10 bg-[#1A1A1A] rounded-2xl p-8 flex items-center justify-between">
