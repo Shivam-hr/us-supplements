@@ -1,12 +1,32 @@
 'use client'
 import Link from 'next/link'
 import { useCart } from '../context/CartContext'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 export default function Navbar() {
   const { totalItems } = useCart()
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null)
+    })
+
+    return () => listener.subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+  }
 
   return (
-     <div className="sticky top-0 z-50 bg-white shadow-sm">
+    <div className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="bg-[#1A1A1A] text-[#E8E8E8] text-xs text-center py-1.5 tracking-wide">
         Free shipping on prepaid orders above ₹499 <span className="text-[#C6FF1E]">•</span> 100% authentic, sourced directly from brands
       </div>
@@ -31,12 +51,26 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-6 text-[#1A1A1A] shrink-0">
-          <Link href="/login" className="flex flex-col items-center gap-0.5 hover:text-[#C6FF1E] transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span className="text-[10px]">Login</span>
-          </Link>
+
+          {/* LOGIN / LOGOUT — this is the conditional rendering */}
+          {user ? (
+            <div
+              onClick={handleLogout}
+              className="flex flex-col items-center gap-0.5 cursor-pointer hover:text-[#C6FF1E] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="text-[10px]">Logout</span>
+            </div>
+          ) : (
+            <Link href="/login" className="flex flex-col items-center gap-0.5 hover:text-[#C6FF1E] transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="text-[10px]">Login</span>
+            </Link>
+          )}
 
           <Link href="/wishlist" className="flex flex-col items-center gap-0.5 hover:text-[#C6FF1E] transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -56,6 +90,7 @@ export default function Navbar() {
               </span>
             )}
           </Link>
+
         </div>
       </div>
 
