@@ -1,14 +1,50 @@
 'use client'
-import { useState, use } from 'react'
-import { products } from '../../../data/products'
+import { useState, use, useEffect } from 'react'
+import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { useCart } from '../../../context/CartContext'
 
 export default function ProductDetailPage({ params }) {
   const { addToCart } = useCart()
+
   const { id } = use(params)
-  const product = products.find(p => p.id === parseInt(id))
+  const [product, setProduct] = useState(null)
+  const [relatedProducts, setRelatedProducts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
+
+useEffect(() => {
+  const fetchProduct = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', parseInt(id))
+      .single()
+
+    setProduct(data)
+
+    if (data) {
+      const { data: related } = await supabase
+        .from('products')
+        .select('*')
+        .eq('category', data.category)
+        .eq('in_stock', true)
+        .neq('id', data.id)
+        .limit(4)
+      setRelatedProducts(related || [])
+    }
+    setLoading(false)
+  }
+  fetchProduct()
+}, [id])
+
+  if (loading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-10 h-10 border-4 border-[#C6FF1E] border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
 
   if (!product) {
     return (
@@ -26,9 +62,6 @@ export default function ProductDetailPage({ params }) {
     ? Math.round((product.mrp - product.price) / product.mrp * 100)
     : 0
 
-  const relatedProducts = products
-    .filter(p => p.category === product.category && p.id !== product.id && p.in_stock)
-    .slice(0, 4)
 
   return (
     <div className="min-h-screen bg-white pb-16">

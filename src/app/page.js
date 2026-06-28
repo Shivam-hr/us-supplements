@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { featuredProducts } from '../data/products'
+import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 
 const banners = [
@@ -157,6 +157,21 @@ function HeroBanner() {
 }
 
 export default function Home() {
+  const [featuredProducts, setFeaturedProducts] = useState([])
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_featured', true)
+        .eq('in_stock', true)
+        .limit(8)
+      setFeaturedProducts(data || [])
+    }
+    fetch()
+  }, [])
+
   return (
     <main className="pb-16 text-base">
 
