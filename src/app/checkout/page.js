@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useCart } from '../../context/CartContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { supabase } from '../../lib/supabase'
 
 export default function CheckoutPage() {
   const { cartItems, totalPrice, totalItems, clearCart } = useCart()
@@ -42,18 +43,46 @@ export default function CheckoutPage() {
     return newErrors
   }
 
-  const handlePlaceOrder = async () => {
-    const newErrors = validate()
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
-    setLoading(true)
-    // Simulate order processing (replace with Razorpay + Supabase later)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    clearCart()
-    router.push('/order-success')
+ const handlePlaceOrder = async () => {
+  const newErrors = validate()
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors)
+    return
   }
+  setLoading(true)
+
+  // Get current logged in user
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Save order to Supabase
+  const { data: order, error } = await supabase
+    .from('orders')
+    .insert({
+      user_id: user?.id || null,
+      items: cartItems,
+      total: finalTotal,
+      delivery_charge: deliveryCharge,
+      status: 'pending',
+      full_name: form.fullName,
+      phone: form.phone,
+      email: form.email,
+      address: form.address,
+      city: form.city,
+      state: form.state,
+      pincode: form.pincode,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Order error:', error.message)
+    setLoading(false)
+    return
+  }
+
+  clearCart()
+  router.push(`/order-success?id=${order.id}`)
+}
 
   if (cartItems.length === 0) {
     return (
