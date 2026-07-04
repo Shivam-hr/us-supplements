@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
+import Razorpay from 'razorpay'
 
 export default function CheckoutPage() {
   const { cartItems, totalPrice, totalItems, clearCart } = useCart()
@@ -43,7 +44,17 @@ export default function CheckoutPage() {
     return newErrors
   }
 
- const handlePlaceOrder = async () => {
+const loadRazorpay = () => {
+  return new Promise(resolve => {
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.onload = () => resolve(true)
+    script.onerror = () => resolve(false)
+    document.body.appendChild(script)
+  })
+}
+
+const handlePlaceOrder = async () => {
   const newErrors = validate()
   if (Object.keys(newErrors).length > 0) {
     setErrors(newErrors)
@@ -51,37 +62,77 @@ export default function CheckoutPage() {
   }
   setLoading(true)
 
-  // Get current logged in user
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // Save order to Supabase
-  const { data: order, error } = await supabase
-    .from('orders')
-    .insert({
-      user_id: user?.id || null,
-      items: cartItems,
-      total: finalTotal,
-      delivery_charge: deliveryCharge,
-      status: 'pending',
-      full_name: form.fullName,
-      phone: form.phone,
-      email: form.email,
-      address: form.address,
-      city: form.city,
-      state: form.state,
-      pincode: form.pincode,
-    })
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Order error:', error.message)
+  // Load Razorpay script
+  const loaded = await loadRazorpay()
+  if (!loaded) {
+    alert('Razorpay failed to load. Check your internet connection.')
     setLoading(false)
     return
   }
 
-  clearCart()
-  router.push(`/order-success?id=${order.id}`)
+  // Create order on your server
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const res = await fetch('/api/create-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount: finalTotal }),
+  })
+  const { orderId } = await res.json()
+
+  // Open Razorpay checkout
+  const options = {
+    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+    amount: finalTotal * 100,
+    currency: 'INR',
+    name: 'US Supplements',
+    description: 'Premium supplements order',
+    order_id: orderId,
+    prefill: {
+      name: form.fullName,
+      email: form.email,
+      contact: form.phone,
+    },
+    theme: {
+      color: '#C6FF1E',
+    },
+    handler: async function(response) {
+      // Payment successful — save order to Supabase
+      const { data: order, error } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user?.id || null,
+          items: cartItems,
+          total: finalTotal,
+          delivery_charge: deliveryCharge,
+          status: 'paid',
+          full_name: form.fullName,
+          phone: form.phone,
+          email: form.email,
+          address: form.address,
+          city: form.city,
+          state: form.state,
+          pincode: form.pincode,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+        })
+        .select()
+        .single()
+
+      if (!error) {
+        clearCart()
+        router.push(`/order-success?id=${order.id}`)
+      }
+    },
+  }
+
+  const rzp = new window.Razorpay(options)
+  rzp.on('payment.failed', function() {
+    alert('Payment failed. Please try again.')
+    setLoading(false)
+  })
+  rzp.open()
+  setLoading(false)
 }
 
   if (cartItems.length === 0) {
