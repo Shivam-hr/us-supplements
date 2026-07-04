@@ -4,7 +4,7 @@ import { useCart } from '../../context/CartContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
-import Razorpay from 'razorpay'
+
 
 export default function CheckoutPage() {
   const { cartItems, totalPrice, totalItems, clearCart } = useCart()
