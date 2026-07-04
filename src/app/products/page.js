@@ -2,6 +2,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
+import { useCart } from '../../context/CartContext'
+
 
 const categories = [
   'Whey Protein', 'Mass Gainer', 'Pre-Workout', 'Creatine',
@@ -12,7 +14,8 @@ function ProductCard({ product }) {
   const discount = product.mrp > product.price
     ? Math.round((product.mrp - product.price) / product.mrp * 100)
     : 0
-
+    const { addToCart } = useCart()
+    
   return (
     <Link href={`/products/${product.id}`}>
       <div className="border border-gray-100 rounded-2xl p-3 hover:border-[#C6FF1E] hover:shadow-sm transition-all cursor-pointer group bg-white h-full flex flex-col">
@@ -45,12 +48,14 @@ function ProductCard({ product }) {
           )}
         </div>
         <button
-          onClick={e => e.preventDefault()}
-          disabled={!product.in_stock}
-          className={`w-full text-sm font-semibold py-2.5 rounded-xl transition-all ${product.in_stock ? 'bg-[#1A1A1A] text-[#C6FF1E] hover:bg-[#333]' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+          onClick={e => {
+            e.preventDefault()
+            addToCart(product, 1)
+          }}
+          className="w-full bg-[#1A1A1A] text-[#C6FF1E] text-sm font-semibold py-3 rounded-xl hover:bg-[#333] transition-all"
         >
-          {product.in_stock ? 'Add to cart' : 'Out of stock'}
-        </button>
+          Add to cart
+       </button>
       </div>
     </Link>
   )
