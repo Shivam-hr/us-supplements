@@ -6,13 +6,21 @@ const razorpay = new Razorpay({
 })
 
 export async function POST(request) {
-  const { amount } = await request.json()
+  try {
+    const { amount } = await request.json()
 
-  const order = await razorpay.orders.create({
-    amount: amount * 100,
-    currency: 'INR',
-    receipt: 'receipt_' + Date.now(),
-  })
+    console.log('Key ID:', process.env.RAZORPAY_KEY_ID)
+    console.log('Amount:', amount)
 
-  return Response.json({ orderId: order.id })
+    const order = await razorpay.orders.create({
+      amount: amount * 100,
+      currency: 'INR',
+      receipt: 'receipt_' + Date.now(),
+    })
+
+    return Response.json({ orderId: order.id })
+  } catch (error) {
+    console.error('Razorpay error:', error.message)
+    return Response.json({ error: error.message }, { status: 500 })
+  }
 }

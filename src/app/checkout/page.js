@@ -82,7 +82,7 @@ const handlePlaceOrder = async () => {
 
   // Open Razorpay checkout
   const options = {
-    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+    key: 'rzp_test_T9Ozh6lcYBMhrm',
     amount: finalTotal * 100,
     currency: 'INR',
     name: 'US Supplements',
