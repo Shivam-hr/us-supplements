@@ -179,7 +179,7 @@ export default function ProductsPage() {
       </div>
 
       <div className="flex">
-        <aside className="w-60 shrink-0 border-r border-gray-100 px-5 py-6 sticky top-0 h-screen overflow-y-auto">
+        <aside className="w-60 shrink-0 border-r border-gray-100 px-5 py-6 sticky sticky top-45 h-[calc(100vh-9rem-2rem)] overflow-y-auto overflow-y-auto">
           <div className="mb-6">
             <p className="text-xs font-bold uppercase tracking-wider text-[#1A1A1A] mb-3">Search</p>
             <input
