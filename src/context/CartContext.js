@@ -1,18 +1,22 @@
 'use client'
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
 const CartContext = createContext(null)
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState(() => {
-  if (typeof window === 'undefined') return []
-  try {
-    const saved = localStorage.getItem('cartItems')
-    return saved ? JSON.parse(saved) : []
-  } catch {
-    return []
-  }
-})
+    if (typeof window === 'undefined') return []
+    try {
+      const saved = localStorage.getItem('cartItems')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+
+  useEffect(() => {
+    localStorage.setItem('cartItems', JSON.stringify(cartItems))
+  }, [cartItems])
 
   const addToCart = (product, quantity = 1) => {
     setCartItems(prev => {
@@ -20,14 +24,14 @@ export function CartProvider({ children }) {
       if (existing) {
         return prev.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity } 
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         )
       }
       return [...prev, { ...product, quantity }]
     })
-  } 
-  
+  }
+
   const removeFromCart = (productId) => {
     setCartItems(prev => prev.filter(item => item.id !== productId))
   }
