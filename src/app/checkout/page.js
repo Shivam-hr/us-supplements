@@ -96,34 +96,43 @@ const handlePlaceOrder = async () => {
     theme: {
       color: '#C6FF1E',
     },
-    handler: async function(response) {
-      // Payment successful — save order to Supabase
-      const { data: order, error } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user?.id || null,
-          items: cartItems,
-          total: finalTotal,
-          delivery_charge: deliveryCharge,
-          status: 'paid',
-          full_name: form.fullName,
-          phone: form.phone,
-          email: form.email,
-          address: form.address,
-          city: form.city,
-          state: form.state,
-          pincode: form.pincode,
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_order_id: response.razorpay_order_id,
-        })
-        .select()
-        .single()
+   handler: async function(response) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
 
-      if (!error) {
-        clearCart()
-        router.push(`/order-success?id=${order.id}`)
-      }
-    },
+    const { data: order, error } = await supabase
+      .from('orders')
+      .insert({
+        user_id: user?.id || null,
+        items: cartItems,
+        total: finalTotal,
+        delivery_charge: deliveryCharge,
+        status: 'paid',
+        full_name: form.fullName,
+        phone: form.phone,
+        email: form.email,
+        address: form.address,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_order_id: response.razorpay_order_id,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Order save error:', error.message)
+      alert('Payment done but order save failed. Contact support with payment ID: ' + response.razorpay_payment_id)
+      return
+    }
+
+    clearCart()
+    router.push(`/order-success?id=${order.id}`)
+  } catch (err) {
+    console.error('Handler error:', err.message)
+  }
+}
   }
 
   const rzp = new window.Razorpay(options)

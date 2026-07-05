@@ -10,6 +10,7 @@ const categories = [
   'BCAA', 'Vitamins', 'Weight Management', 'Accessories', 'Others'
 ]
 
+
 function ProductCard({ product }) {
   const discount = product.mrp > product.price
     ? Math.round((product.mrp - product.price) / product.mrp * 100)
