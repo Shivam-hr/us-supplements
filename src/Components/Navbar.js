@@ -223,14 +223,8 @@ export default function Navbar() {
         <span className="cursor-pointer hover:text-white transition-colors">Support</span>
       </div>
 
-      {/* Sub Category Horizontal strip */}
-      <div className="flex items-center gap-8 px-8 py-3 bg-[#0D1013] text-xs font-bold uppercase tracking-wider text-zinc-400 overflow-x-auto whitespace-nowrap border-b border-zinc-900">
-        {['Protein', 'Mass gainers', 'Pre-workout', 'Creatine', 'BCAA & aminos', 'Vitamins', 'Weight management', 'Accessories'].map((cat, i) => (
-          <span key={cat} className={`cursor-pointer pb-0.5 transition-colors hover:text-white ${i === 0 ? 'text-white font-black border-b-2 border-[#C6FF1E]' : ''}`}>
-            {cat}
-          </span>
-        ))}
-      </div>
+     
+      
     </div>
   )
-}
+} 
