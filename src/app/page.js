@@ -2,6 +2,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import Link from 'next/link'
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const banners = [
   { id: 1, image: '/images/banners/avvatar-whey.jpg', alt: 'Avvatar Whey Protein' },
@@ -42,37 +48,35 @@ const whyUs = [
 // 1. REMOVED "export default" FROM HERE
 function ShopByCategory() {
   // Replace the 'img' addresses below with your own real product image URLs
- const categories = [
+const categories = [
   {
-    name: 'Protein',
-    img: '/images/Category/protein-powder.jpg',
-    highlight: true
+    name: "Protein",
+    img: "/images/Category/protein-powder.jpg",
   },
   {
-    name: 'Mass Gainer',
-    img: '/images/Category/Mass-Gainer.jpg',
-    highlight: false
+    name: "Mass Gainer",
+    img: "/images/Category/Mass-Gainer.jpg",
   },
   {
-    name: 'Pre-workout',
-    img: '/images/Category/pre-workout.avif',
-    highlight: false
+    name: "Creatine",
+    img: "/images/Category/creatine.jpg",
   },
   {
-    name: 'Bcaa',
-    img: '/images/Category/Bcaa.webp',
-    highlight: false
+    name: "Pre-workout",
+    img: "/images/Category/pre-workout.avif",
   },
   {
-    name: 'Vitamins',
-    img: '/images/Category/Multivitamin.jpg',
-    highlight: false
+    name: "Bcaa",
+    img: "/images/Category/Bcaa.webp",
   },
   {
-    name: 'Accessories',
-    img: '/images/Category/accessories.jpeg',
-    highlight: false
-  }
+    name: "Vitamins",
+    img: "/images/Category/Multivitamin.jpg",
+  },
+  {
+    name: "Accessories",
+    img: "/images/Category/accessories.jpeg",
+  },
 ];
 
   return (
@@ -83,33 +87,55 @@ function ShopByCategory() {
         </h2>
         
         {/* Grid layout badha diya hai taaki icons bade dikhein */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-10 justify-items-center">
-          {categories.map((cat) => (
-            <Link 
-              key={cat.name} 
-              href={`/products?search=${encodeURIComponent(cat.name)}`} 
-              className="flex flex-col items-center gap-5 group"
-            >
-             <div className="w-24 h-24 sm:w-44 sm:h-44 lg:w-52 lg:h-52 bg-[#F4F4F5]
-                rounded-[2rem]
-                flex items-center justify-center
-                p-5
-                transition-all duration-500
-                group-hover:bg-[#C6FF1E]
-                group-hover:scale-105
-                group-hover:shadow-2xl">
-                <img 
-                  src={cat.img} 
-                  alt={cat.name} 
-                  className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
-              <span className="text-sm sm:text-base font-bold text-zinc-800 text-center tracking-wide group-hover:text-black">
-                {cat.name}
-              </span>
-            </Link>
-          ))}
-        </div>
+    <Swiper
+      className="px-10 py-2"
+      modules={[Navigation, Autoplay]}
+      navigation
+      autoplay={{
+        delay: 3000,
+        disableOnInteraction: false,
+      }}
+      loop={true}
+      spaceBetween={30}
+      breakpoints={{
+        320: {
+          slidesPerView: 2,
+        },
+        640: {
+          slidesPerView: 3,
+        },
+        768: {
+          slidesPerView: 4,
+        },
+        1024: {
+          slidesPerView: 5,
+        },
+        1280: {
+          slidesPerView: 6,
+        },
+      }}
+    >
+      {categories.map((cat) => (
+        <SwiperSlide key={cat.name}>
+          <Link
+            href={`/products?search=${encodeURIComponent(cat.name)}`}
+            className="flex flex-col items-center gap-4 group"
+          >
+            <div className="w-28 h-28 sm:w-32 sm:h-32 bg-[#F4F4F5] rounded-3xl flex items-center justify-center p-3 transition-all duration-300 group-hover:bg-[#C6FF1E] group-hover:scale-105 group-hover:shadow-xl">
+              <img
+                src={cat.img}
+                alt={cat.name}
+                className="w-full h-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-110"
+              />
+            </div>
+
+            <span className="text-base font-bold text-zinc-800 text-center">
+              {cat.name}
+            </span>
+          </Link>
+        </SwiperSlide>
+      ))}
+    </Swiper>
       </div>
     </div>
   )
