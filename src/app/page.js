@@ -293,24 +293,32 @@ export default function Home() {
       <div id="shop-by-brand" className="px-16 py-10 bg-gray-50 mt-8 scroll-mt-40">
         <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-6">Shop by brand</p>
         <div className="grid grid-cols-6 gap-4">
-          {brandLogos.map(brand => (
-            <div key={brand.name} className="bg-white border border-gray-100 rounded-2xl h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#C6FF1E] hover:shadow-sm transition-all px-3 group">
-              {brand.image ? (
-                <img
-                  src={brand.image}
-                  alt={brand.name}
-                  className="max-h-10 max-w-full object-contain"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-sm text-[#1A1A1A]">
-                  {brand.name[0]}
-                </div>
-              )}
-              <span className="text-xs font-medium text-gray-500 text-center leading-tight group-hover:text-[#1A1A1A] transition-colors">
-                {brand.name}
-              </span>
-            </div>
-          ))}
+          {brandLogos.map(brand => {
+            // "OSN" is just a logo alias — the real brand value stored on products is "One Science"
+            const brandParam = brand.name === 'OSN' ? 'One Science' : brand.name
+            return (
+              <Link
+                key={brand.name}
+                href={`/products?brand=${encodeURIComponent(brandParam)}`}
+                className="bg-white border border-gray-100 rounded-2xl h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#C6FF1E] hover:shadow-sm transition-all px-3 group"
+              >
+                {brand.image ? (
+                  <img
+                    src={brand.image}
+                    alt={brand.name}
+                    className="max-h-10 max-w-full object-contain"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-sm text-[#1A1A1A]">
+                    {brand.name[0]}
+                  </div>
+                )}
+                <span className="text-xs font-medium text-gray-500 text-center leading-tight group-hover:text-[#1A1A1A] transition-colors">
+                  {brand.name}
+                </span>
+              </Link>
+            )
+          })}
         </div>
       </div>
 
