@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+/* Smaller, custom Shop By Category swiper arrows */
+.category-swiper .swiper-button-prev,
+.category-swiper .swiper-button-next {
+  width: 32px;
+  height: 32px;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  color: #1a1a1a;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+}
+
+.category-swiper .swiper-button-prev:hover,
+.category-swiper .swiper-button-next:hover {
+  background: #c6ff1e;
+  color: #1a1a1a;
+}
+
+.category-swiper .swiper-button-prev::after,
+.category-swiper .swiper-button-next::after {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.category-swiper .swiper-button-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

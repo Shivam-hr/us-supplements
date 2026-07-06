@@ -39,45 +39,28 @@ const brandLogos = [
 ]
 
 const whyUs = [
-  { icon: '✅', title: '100% Authentic', desc: 'Sourced directly from brands. Every product verified.' },
-  { icon: '🚚', title: 'Free Delivery', desc: 'Free shipping on prepaid orders above ₹499.' },
-  { icon: '↩️', title: 'Easy Returns', desc: '7-day hassle-free return policy.' },
-  { icon: '🔒', title: 'Secure Payments', desc: 'Razorpay powered. UPI, cards, net banking accepted.' },
+  { icon: '✅', title: '100% Authentic', desc: 'Directly from brands. Every product verified.', pill: '✓ Verified Quality' },
+  { icon: '🚚', title: 'Free Delivery', desc: 'Free shipping on prepaid orders above ₹499.', pill: '🚚 No Extra Charges' },
+  { icon: '↩️', title: 'Easy Returns', desc: '7-day hassle-free return policy.', pill: '↩ Quick & Easy' },
+  { icon: '🔒', title: 'Secure Payments', desc: 'Razorpay secured. UPI, Cards, Net banking & more.', pill: '🔒 100% Safe' },
 ]
 
-// 1. REMOVED "export default" FROM HERE
+const trustHighlights = [
+  { icon: '🏷️', title: 'Best Prices', desc: 'Unbeatable offers on top brands' },
+  { icon: '⭐', title: '4.8/5 Customer Rating', desc: 'Trusted by 50,000+ happy customers' },
+  { icon: '🛡️', title: 'Brand Promise', desc: 'Genuine products. Always.' },
+]
+
 function ShopByCategory() {
-  // Replace the 'img' addresses below with your own real product image URLs
-const categories = [
-  {
-    name: "Protein",
-    img: "/images/Category/protein-powder.jpg",
-  },
-  {
-    name: "Mass Gainer",
-    img: "/images/Category/Mass-Gainer.jpg",
-  },
-  {
-    name: "Creatine",
-    img: "/images/Category/creatine.jpg",
-  },
-  {
-    name: "Pre-workout",
-    img: "/images/Category/pre-workout.avif",
-  },
-  {
-    name: "Bcaa",
-    img: "/images/Category/Bcaa.webp",
-  },
-  {
-    name: "Vitamins",
-    img: "/images/Category/Multivitamin.jpg",
-  },
-  {
-    name: "Accessories",
-    img: "/images/Category/accessories.jpeg",
-  },
-];
+  const categories = [
+    { name: "Protein", img: "/images/Category/protein-powder.jpg" },
+    { name: "Mass Gainer", img: "/images/Category/Mass-Gainer.jpg" },
+    { name: "Creatine", img: "/images/Category/creatine.jpg" },
+    { name: "Pre-workout", img: "/images/Category/pre-workout.avif" },
+    { name: "Bcaa", img: "/images/Category/Bcaa.webp" },
+    { name: "Vitamins", img: "/images/Category/Multivitamin.jpg" },
+    { name: "Accessories", img: "/images/Category/accessories.jpeg" },
+  ];
 
   return (
     <div className="py-16 bg-white">
@@ -85,57 +68,47 @@ const categories = [
         <h2 className="text-sm font-black tracking-[0.2em] text-zinc-900 uppercase mb-10 text-center">
           Shop By Category
         </h2>
-        
-        {/* Grid layout badha diya hai taaki icons bade dikhein */}
-    <Swiper
-      className="px-10 py-2"
-      modules={[Navigation, Autoplay]}
-      navigation
-      autoplay={{
-        delay: 3000,
-        disableOnInteraction: false,
-      }}
-      loop={true}
-      spaceBetween={30}
-      breakpoints={{
-        320: {
-          slidesPerView: 2,
-        },
-        640: {
-          slidesPerView: 3,
-        },
-        768: {
-          slidesPerView: 4,
-        },
-        1024: {
-          slidesPerView: 5,
-        },
-        1280: {
-          slidesPerView: 6,
-        },
-      }}
-    >
-      {categories.map((cat) => (
-        <SwiperSlide key={cat.name}>
-          <Link
-            href={`/products?search=${encodeURIComponent(cat.name)}`}
-            className="flex flex-col items-center gap-4 group"
-          >
-            <div className="w-28 h-28 sm:w-32 sm:h-32 bg-[#F4F4F5] rounded-3xl flex items-center justify-center p-3 transition-all duration-300 group-hover:bg-[#C6FF1E] group-hover:scale-105 group-hover:shadow-xl">
-              <img
-                src={cat.img}
-                alt={cat.name}
-                className="w-full h-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-110"
-              />
-            </div>
 
-            <span className="text-base font-bold text-zinc-800 text-center">
-              {cat.name}
-            </span>
-          </Link>
-        </SwiperSlide>
-      ))}
-    </Swiper>
+        <Swiper
+          className="category-swiper px-10 py-2"
+          modules={[Navigation, Autoplay]}
+          navigation
+          autoplay={{
+            delay: 3000,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          }}
+          loop={false}
+          rewind={true}
+          spaceBetween={30}
+          breakpoints={{
+            320: { slidesPerView: 2 },
+            640: { slidesPerView: 3 },
+            768: { slidesPerView: 4 },
+            1024: { slidesPerView: 5 },
+            1280: { slidesPerView: 6 },
+          }}
+        >
+          {categories.map((cat) => (
+            <SwiperSlide key={cat.name}>
+              <Link
+                href={`/products?search=${encodeURIComponent(cat.name)}`}
+                className="flex flex-col items-center gap-4 group"
+              >
+                <div className="w-28 h-28 sm:w-32 sm:h-32 bg-[#F4F4F5] rounded-3xl flex items-center justify-center p-3 transition-all duration-300 group-hover:b-[#C6FF1E] group-hover:scale-105 group-hover:shadow-xl">
+                  <img
+                    src={cat.img}
+                    alt={cat.name}
+                    className="w-full h-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
+                <span className="text-base font-bold text-zinc-800 text-center">
+                  {cat.name}
+                </span>
+              </Link>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
     </div>
   )
@@ -257,16 +230,34 @@ export default function Home() {
       <HeroBanner />
 
       {/* TRUST STRIP */}
-      <div className="border-b border-gray-100 px-16 py-5 grid grid-cols-4 divide-x divide-gray-100">
-        {whyUs.map(item => (
-          <div key={item.title} className="flex items-center gap-3 px-6 first:pl-0">
-            <span className="text-2xl">{item.icon}</span>
-            <div>
-              <p className="font-semibold text-[#1A1A1A]">{item.title}</p>
-              <p className="text-sm text-gray-400 leading-relaxed">{item.desc}</p>
+      <div className="mx-16 mt-8 border border-gray-100 rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-4 divide-x divide-gray-100">
+          {whyUs.map(item => (
+            <div key={item.title} className="p-6 flex flex-col gap-3">
+              <div className="w-11 h-11 rounded-xl bg-[#C6FF1E]/25 flex items-center justify-center text-xl shrink-0">
+                {item.icon}
+              </div>
+              <div>
+                <p className="font-bold text-[#1A1A1A]">{item.title}</p>
+                <p className="text-sm text-gray-400 leading-relaxed mt-1">{item.desc}</p>
+              </div>
+              <span className="w-fit text-xs font-semibold bg-[#EFFFD1] text-[#4d7a00] px-3 py-1.5 rounded-full mt-1">
+                {item.pill}
+              </span>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+        <div className="bg-[#F7FFEA] px-6 py-5 grid grid-cols-3 divide-x divide-[#E3F5B4]">
+          {trustHighlights.map(item => (
+            <div key={item.title} className="flex items-center gap-3 px-4 first:pl-0">
+              <span className="text-2xl shrink-0">{item.icon}</span>
+              <div>
+                <p className="font-bold text-[#1A1A1A] text-sm">{item.title}</p>
+                <p className="text-sm text-gray-500 leading-snug">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* 3. INJECTED THE NEW COMPONENT HERE */}
