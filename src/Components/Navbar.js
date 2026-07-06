@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
+import { categories } from '../data/products'
 
 const searchPlaceholders = [
   "Search for 'Whey Protein'...",
@@ -24,6 +25,7 @@ export default function Navbar() {
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   const [liveResults, setLiveResults] = useState([])
   const [defaultProducts, setDefaultProducts] = useState([])
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -214,8 +216,43 @@ export default function Navbar() {
 
       {/* FIXED VISIBILITY LINKS AREA */}
       <div className="flex items-center justify-center gap-8 px-8 py-3.5 bg-[#080B0D] border-b border-zinc-900 text-xs font-bold uppercase tracking-wider text-zinc-300">
-        <span className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors text-xs">All categories▾</span>
-        <span className="cursor-pointer hover:text-white transition-colors">Brands</span>
+
+        {/* ALL CATEGORIES — hover dropdown */}
+        <div
+          className="relative"
+          onMouseEnter={() => setCategoriesOpen(true)}
+          onMouseLeave={() => setCategoriesOpen(false)}
+        >
+          <span className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors text-xs">
+            All categories
+            <svg xmlns="http://www.w3.org/2000/svg" className={`w-3 h-3 transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
+
+          {categoriesOpen && (
+            <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 w-56 z-50">
+              <div className="bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] border border-gray-200 overflow-hidden py-2">
+                {categories.map(cat => (
+                  <Link
+                    key={cat}
+                    href={`/products?category=${encodeURIComponent(cat)}`}
+                    onClick={() => setCategoriesOpen(false)}
+                    className="block px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-700 hover:bg-gray-50 hover:text-[#1A1A1A] transition-colors normal-case"
+                  >
+                    {cat}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* BRANDS — scrolls to Shop by brand section */}
+        <Link href="/#shop-by-brand" className="cursor-pointer hover:text-white transition-colors">
+          Brands
+        </Link>
+
         <span className="bg-[#C6FF1E] text-black font-black px-3 py-0.5 rounded-full text-[10px]">Offers</span>
         <span className="cursor-pointer hover:text-white transition-colors">Best sellers</span>
         <span className="cursor-pointer hover:text-white transition-colors">Authenticity</span>
@@ -227,4 +264,4 @@ export default function Navbar() {
       
     </div>
   )
-} 
+}

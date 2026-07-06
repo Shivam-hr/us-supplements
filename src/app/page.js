@@ -290,7 +290,7 @@ export default function Home() {
       </div>
 
       {/* SHOP BY BRAND */}
-      <div className="px-16 py-10 bg-gray-50 mt-8">
+      <div id="shop-by-brand" className="px-16 py-10 bg-gray-50 mt-8 scroll-mt-40">
         <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-6">Shop by brand</p>
         <div className="grid grid-cols-6 gap-4">
           {brandLogos.map(brand => (

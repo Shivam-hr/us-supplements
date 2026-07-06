@@ -100,6 +100,20 @@ function ProductsPageContent() {
     }
   }, [searchParams])
 
+  useEffect(() => {
+    const urlCategory = searchParams.get('category')
+    if (urlCategory) {
+      setSelectedCategory(urlCategory)
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    const urlBrand = searchParams.get('brand')
+    if (urlBrand) {
+      setSelectedBrands([urlBrand])
+    }
+  }, [searchParams])
+
   // THIS is where await goes — inside useEffect, inside an async function
   useEffect(() => {
     const fetchProducts = async () => {
