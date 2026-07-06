@@ -11,17 +11,6 @@ const banners = [
   { id: 5, image: '/images/banners/beastlife-protein.webp', alt: 'BeastLife Performance Protein' },
 ]
 
-const categories = [
-  { name: 'Protein', icon: '🧪' },
-  { name: 'Mass gainer', icon: '💪' },
-  { name: 'Pre-workout', icon: '⚡' },
-  { name: 'Creatine', icon: '💧' },
-  { name: 'BCAA', icon: '💊' },
-  { name: 'Vitamins', icon: '🌿' },
-  { name: 'Weight mgmt', icon: '⚖️' },
-  { name: 'Accessories', icon: '🎽' },
-]
-
 const brandLogos = [
   { name: 'Optimum Nutrition', image: '/images/logo/on.png' },
   { name: 'MuscleBlaze', image: '/images/logo/mb.png' },
@@ -34,25 +23,13 @@ const brandLogos = [
   { name: 'Anabolic Muscle', image: '/images/logo/anabolic.webp' },
   { name: 'Applied Nutrition', image: '/images/logo/appliednutrition.png' },
   { name: 'GAT', image: '/images/logo/gat.png' },
-  // { name: 'PVL', image: 'https://logo.clearbit.com/pvl.com' }, // Still using API
-  // { name: 'Muscle Science', image: 'https://logo.clearbit.com/musclescience.in' }, // Still using API
-  // { name: 'ProSupps', image: 'https://logo.clearbit.com/prosupps.com' }, // Still using API
-  // { name: 'Gaspari', image: 'https://logo.clearbit.com/gasparinutrition.com' }, // Still using API
   { name: 'Kevin Levrone', image: '/images/logo/kevin.jpg' },
   { name: 'Labrada', image: '/images/logo/labrada.png' },
   { name: 'Wellcore', image: '/images/logo/wellcore.png' },
   { name: 'AS-IT-IS', image: '/images/logo/asitis.png' },
   { name: 'Big Muscle', image: '/images/logo/Bigmes.webp' },
-  // { name: 'Daily Scoop', image: 'https://logo.clearbit.com/dailyscoop.com' }, // Still using API
-  // { name: 'Ronnie Coleman', image: 'https://logo.clearbit.com/ronniecoleman.net' }, // Still using API
   { name: 'Dymatize', image: '/images/logo/dymatize.jpeg' },
-  { name: 'OSN', image: '/images/logo/onescience.jpeg' }, // Reusing One Science logo for OSN
-  // { name: 'BSN', image: 'https://logo.clearbit.com/gobsn.com' }, // Still using API
-  // { name: 'Isopure', image: 'https://logo.clearbit.com/theisopurecompany.com' }, // Still using API
-  // { name: 'Rule 1', image: 'https://logo.clearbit.com/ruleoneproteins.com' }, // Still using API
-  // { name: 'Ultimate Nutrition', image: 'https://logo.clearbit.com/ultimatenutrition.com' }, // Still using API
-  // { name: 'Cellucor', image: 'https://logo.clearbit.com/cellucor.com' }, // Still using API
-  // { name: 'Atom', image: '/images/logo/a' }, // Still using API
+  { name: 'OSN', image: '/images/logo/onescience.jpeg' }, 
 ]
 
 const whyUs = [
@@ -61,6 +38,82 @@ const whyUs = [
   { icon: '↩️', title: 'Easy Returns', desc: '7-day hassle-free return policy.' },
   { icon: '🔒', title: 'Secure Payments', desc: 'Razorpay powered. UPI, cards, net banking accepted.' },
 ]
+
+// 1. REMOVED "export default" FROM HERE
+function ShopByCategory() {
+  // Replace the 'img' addresses below with your own real product image URLs
+ const categories = [
+  {
+    name: 'Protein',
+    img: '/images/Category/protein-powder.jpg',
+    highlight: true
+  },
+  {
+    name: 'Mass Gainer',
+    img: '/images/Category/Mass-Gainer.jpg',
+    highlight: false
+  },
+  {
+    name: 'Pre-workout',
+    img: '/images/Category/pre-workout.avif',
+    highlight: false
+  },
+  {
+    name: 'Bcaa',
+    img: '/images/Category/Bcaa.webp',
+    highlight: false
+  },
+  {
+    name: 'Vitamins',
+    img: '/images/Category/Multivitamin.jpg',
+    highlight: false
+  },
+  {
+    name: 'Accessories',
+    img: '/images/Category/accessories.jpeg',
+    highlight: false
+  }
+];
+
+  return (
+    <div className="py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <h2 className="text-sm font-black tracking-[0.2em] text-zinc-900 uppercase mb-10 text-center">
+          Shop By Category
+        </h2>
+        
+        {/* Grid layout badha diya hai taaki icons bade dikhein */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-10 justify-items-center">
+          {categories.map((cat) => (
+            <Link 
+              key={cat.name} 
+              href={`/products?search=${encodeURIComponent(cat.name)}`} 
+              className="flex flex-col items-center gap-5 group"
+            >
+             <div className="w-24 h-24 sm:w-44 sm:h-44 lg:w-52 lg:h-52 bg-[#F4F4F5]
+                rounded-[2rem]
+                flex items-center justify-center
+                p-5
+                transition-all duration-500
+                group-hover:bg-[#C6FF1E]
+                group-hover:scale-105
+                group-hover:shadow-2xl">
+                <img 
+                  src={cat.img} 
+                  alt={cat.name} 
+                  className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
+                />
+              </div>
+              <span className="text-sm sm:text-base font-bold text-zinc-800 text-center tracking-wide group-hover:text-black">
+                {cat.name}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function ProductCard({ product , showBrand}) {
   const discount = Math.round((product.mrp - product.price) / product.mrp * 100)
@@ -75,7 +128,6 @@ function ProductCard({ product , showBrand}) {
         {showBrand && (
           <p className="text-xs text-gray-400 mb-1">{product.brand}</p>
         )}
-        
         
         {product.badge && (
           <span className={`inline-block text-xs px-2.5 py-0.5 rounded-full font-semibold mb-2 ${product.badge === 'New' ? 'bg-[#1A1A1A] text-[#C6FF1E]' : 'bg-[#C6FF1E] text-[#1A1A1A]'}`}>
@@ -156,6 +208,7 @@ function HeroBanner() {
   )
 }
 
+// 2. THIS IS THE ONLY DEFAULT EXPORT
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([])
 
@@ -190,20 +243,8 @@ export default function Home() {
         ))}
       </div>
 
-      {/* SHOP BY CATEGORY */}
-      <div className="px-16 py-10">
-        <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-6">Shop by category</p>
-        <div className="grid grid-cols-8 gap-4 text-center">
-          {categories.map((cat, i) => (
-            <div key={cat.name} className="cursor-pointer group flex flex-col items-center">
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-2 text-2xl transition-all group-hover:scale-105 ${i === 0 ? 'bg-[#C6FF1E]' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
-                {cat.icon}
-              </div>
-              <span className="text-sm font-medium text-gray-600">{cat.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* 3. INJECTED THE NEW COMPONENT HERE */}
+      <ShopByCategory />
 
       {/* TRENDING NOW */}
       <div className="px-16 py-4">
@@ -227,28 +268,28 @@ export default function Home() {
 
       {/* SHOP BY BRAND */}
       <div className="px-16 py-10 bg-gray-50 mt-8">
-    <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-6">Shop by brand</p>
-    <div className="grid grid-cols-6 gap-4">
-    {brandLogos.map(brand => (
-      <div key={brand.name} className="bg-white border border-gray-100 rounded-2xl h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#C6FF1E] hover:shadow-sm transition-all px-3 group">
-        {brand.image ? (
-          <img
-            src={brand.image}
-            alt={brand.name}
-            className="max-h-10 max-w-full object-contain"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-sm text-[#1A1A1A]">
-            {brand.name[0]}
-          </div>
-        )}
-        <span className="text-xs font-medium text-gray-500 text-center leading-tight group-hover:text-[#1A1A1A] transition-colors">
-          {brand.name}
-        </span>
+        <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-6">Shop by brand</p>
+        <div className="grid grid-cols-6 gap-4">
+          {brandLogos.map(brand => (
+            <div key={brand.name} className="bg-white border border-gray-100 rounded-2xl h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#C6FF1E] hover:shadow-sm transition-all px-3 group">
+              {brand.image ? (
+                <img
+                  src={brand.image}
+                  alt={brand.name}
+                  className="max-h-10 max-w-full object-contain"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-sm text-[#1A1A1A]">
+                  {brand.name[0]}
+                </div>
+              )}
+              <span className="text-xs font-medium text-gray-500 text-center leading-tight group-hover:text-[#1A1A1A] transition-colors">
+                {brand.name}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-    ))}
-  </div>
-  </div>
 
       {/* DEAL OF THE DAY */}
       <div className="mx-16 my-10 bg-[#1A1A1A] rounded-2xl p-8 flex items-center justify-between">
