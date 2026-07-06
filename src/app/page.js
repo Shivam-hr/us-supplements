@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { ShieldCheck, Truck, RotateCcw, Lock, Tag, Star } from 'lucide-react'
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -39,16 +40,16 @@ const brandLogos = [
 ]
 
 const whyUs = [
-  { icon: '✅', title: '100% Authentic', desc: 'Directly from brands. Every product verified.', pill: '✓ Verified Quality' },
-  { icon: '🚚', title: 'Free Delivery', desc: 'Free shipping on prepaid orders above ₹499.', pill: '🚚 No Extra Charges' },
-  { icon: '↩️', title: 'Easy Returns', desc: '7-day hassle-free return policy.', pill: '↩ Quick & Easy' },
-  { icon: '🔒', title: 'Secure Payments', desc: 'Razorpay secured. UPI, Cards, Net banking & more.', pill: '🔒 100% Safe' },
+  { icon: ShieldCheck, title: '100% Authentic', desc: 'Directly from brands. Every product verified.', pill: 'Verified Quality' },
+  { icon: Truck, title: 'Free Delivery', desc: 'Free shipping on prepaid orders above ₹499.', pill: 'No Extra Charges' },
+  { icon: RotateCcw, title: 'Easy Returns', desc: '7-day hassle-free return policy.', pill: 'Quick & Easy' },
+  { icon: Lock, title: 'Secure Payments', desc: 'Razorpay secured. UPI, Cards, Net banking & more.', pill: '100% Safe' },
 ]
 
 const trustHighlights = [
-  { icon: '🏷️', title: 'Best Prices', desc: 'Unbeatable offers on top brands' },
-  { icon: '⭐', title: '4.8/5 Customer Rating', desc: 'Trusted by 50,000+ happy customers' },
-  { icon: '🛡️', title: 'Brand Promise', desc: 'Genuine products. Always.' },
+  { icon: Tag, title: 'Best Prices', desc: 'Unbeatable offers on top brands' },
+  { icon: Star, title: '4.8/5 Customer Rating', desc: 'Trusted by 50,000+ happy customers' },
+  { icon: ShieldCheck, title: 'Brand Promise', desc: 'Genuine products. Always.' },
 ]
 
 function ShopByCategory() {
@@ -230,35 +231,43 @@ export default function Home() {
       <HeroBanner />
 
       {/* TRUST STRIP */}
-      <div className="mx-16 mt-8 border border-gray-100 rounded-2xl overflow-hidden">
-        <div className="grid grid-cols-4 divide-x divide-gray-100">
-          {whyUs.map(item => (
-            <div key={item.title} className="p-6 flex flex-col gap-3">
-              <div className="w-11 h-11 rounded-xl bg-[#C6FF1E]/25 flex items-center justify-center text-xl shrink-0">
-                {item.icon}
-              </div>
-              <div>
-                <p className="font-bold text-[#1A1A1A]">{item.title}</p>
-                <p className="text-sm text-gray-400 leading-relaxed mt-1">{item.desc}</p>
-              </div>
-              <span className="w-fit text-xs font-semibold bg-[#EFFFD1] text-[#4d7a00] px-3 py-1.5 rounded-full mt-1">
-                {item.pill}
-              </span>
-            </div>
-          ))}
+      {/* TRUST STRIP */}
+<div className="mx-16 mt-8">
+  <div className="grid grid-cols-4 gap-4">
+    {whyUs.map(item => {
+      const Icon = item.icon
+      return (
+        <div key={item.title} className="border border-gray-200 rounded-2xl p-5 flex flex-col gap-3 bg-white">
+          <div className="w-11 h-11 rounded-full bg-green-50 flex items-center justify-center">
+            <Icon className="w-6 h-6 text-green-600" strokeWidth={2} />
+          </div>
+          <div>
+            <p className="font-bold text-[#1A1A1A]">{item.title}</p>
+            <p className="text-sm text-gray-400 leading-relaxed mt-1">{item.desc}</p>
+          </div>
+          <span className="w-fit text-xs font-semibold bg-green-50 text-green-700 px-3 py-1.5 rounded-full mt-1">
+            ✓ {item.pill}
+          </span>
         </div>
-        <div className="bg-[#F7FFEA] px-6 py-5 grid grid-cols-3 divide-x divide-[#E3F5B4]">
-          {trustHighlights.map(item => (
-            <div key={item.title} className="flex items-center gap-3 px-4 first:pl-0">
-              <span className="text-2xl shrink-0">{item.icon}</span>
-              <div>
-                <p className="font-bold text-[#1A1A1A] text-sm">{item.title}</p>
-                <p className="text-sm text-gray-500 leading-snug">{item.desc}</p>
-              </div>
-            </div>
-          ))}
+      )
+    })}
+  </div>
+
+  <div className="bg-[#F7FFEA] rounded-2xl px-6 py-5 grid grid-cols-3 divide-x divide-[#E3F5B4] mt-4">
+    {trustHighlights.map(item => {
+      const Icon = item.icon
+      return (
+        <div key={item.title} className="flex items-center gap-3 px-4 first:pl-0">
+          <Icon className="w-6 h-6 text-green-600 shrink-0" strokeWidth={2} />
+          <div>
+            <p className="font-bold text-[#1A1A1A] text-sm">{item.title}</p>
+            <p className="text-sm text-gray-500 leading-snug">{item.desc}</p>
+          </div>
         </div>
-      </div>
+      )
+    })}
+  </div>
+</div>
 
       {/* 3. INJECTED THE NEW COMPONENT HERE */}
       <ShopByCategory />
