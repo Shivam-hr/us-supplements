@@ -1,14 +1,25 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 import { useCart } from '../../context/CartContext'
 
+import { useSearchParams } from 'next/navigation'
+
 
 const categories = [
   'Whey Protein', 'Mass Gainer', 'Pre-Workout', 'Creatine',
-  'BCAA', 'Vitamins', 'Weight Management', 'Accessories', 'Others'
-]
+  'BCAA', 'Vitamins', 'Weight Management', 'Accessories', 'Others']
+
+  const searchSynonyms = {
+  'mb': 'muscleblaze',
+  'avtar': 'avvatar',
+  'on': 'optimum nutrition',
+  'iso': 'isolate',
+  'bca': 'bcaa',
+  'mas gainer': 'mass gainer'
+}
+
 
 
 function ProductCard({ product }) {
@@ -70,7 +81,7 @@ const sortOptions = [
   { label: 'Name A-Z', value: 'name' },
 ]
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -79,6 +90,15 @@ export default function ProductsPage() {
   const [inStockOnly, setInStockOnly] = useState(false)
   const [search, setSearch] = useState('')
   const [priceMax, setPriceMax] = useState(20000)
+
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const urlSearch = searchParams.get('search')
+    if (urlSearch) {
+      setSearch(urlSearch)
+    }
+  }, [searchParams])
 
   // THIS is where await goes — inside useEffect, inside an async function
   useEffect(() => {
@@ -102,8 +122,17 @@ export default function ProductsPage() {
 
   const filtered = useMemo(() => {
     let result = [...products]
-    if (search.trim()) {
-      const q = search.toLowerCase()
+   if (search.trim()) {
+      let q = search.toLowerCase().trim()
+      
+      // NEW LOGIC: Check our dictionary and replace words
+      // This will turn "mb protein" into "muscleblaze protein"
+      Object.keys(searchSynonyms).forEach(key => {
+        // \b means word boundary, so it only replaces exact words (not parts of words)
+        const regex = new RegExp(`\\b${key}\\b`, 'gi')
+        q = q.replace(regex, searchSynonyms[key])
+      })
+
       result = result.filter(p =>
         p.name.toLowerCase().includes(q) ||
         p.brand.toLowerCase().includes(q) ||
@@ -266,5 +295,16 @@ export default function ProductsPage() {
         </main>
       </div>
     </div>
+  )
+}
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#C6FF1E] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ProductsPageContent />
+    </Suspense>
   )
 }

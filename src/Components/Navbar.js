@@ -5,11 +5,20 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
 
-
-
 export default function Navbar() {
   const { totalItems } = useCart()
   const [user, setUser] = useState(null)
+  
+  // These must be inside the component!
+  const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery('')
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -60,20 +69,20 @@ export default function Navbar() {
 
           {/* LOGIN / LOGOUT — this is the conditional rendering */}
           {user ? (
-    <Link href="/account" className="flex flex-col items-center gap-0.5 hover:text-[#C6FF1E] transition-colors">
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-      <span className="text-[10px]">Account</span>
-    </Link>
-            ) : (
-              <Link href="/login" className="flex flex-col items-center gap-0.5 hover:text-[#C6FF1E] transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className="text-[10px]">Login</span>
-              </Link>
-            )}
+            <Link href="/account" className="flex flex-col items-center gap-0.5 hover:text-[#C6FF1E] transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="text-[10px]">Account</span>
+            </Link>
+          ) : (
+            <Link href="/login" className="flex flex-col items-center gap-0.5 hover:text-[#C6FF1E] transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="text-[10px]">Login</span>
+            </Link>
+          )}
 
           <Link href="/wishlist" className="flex flex-col items-center gap-0.5 hover:text-[#C6FF1E] transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
