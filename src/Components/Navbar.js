@@ -23,16 +23,37 @@ export default function Navbar() {
   const searchRef = useRef(null)
   const [isFocused, setIsFocused] = useState(false)
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
+  const [typedText, setTypedText] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
   const [liveResults, setLiveResults] = useState([])
   const [defaultProducts, setDefaultProducts] = useState([])
   const [categoriesOpen, setCategoriesOpen] = useState(false)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderIndex(prev => (prev + 1) % searchPlaceholders.length)
-    }, 2500)
-    return () => clearInterval(interval)
-  }, [])
+  const currentPhrase = searchPlaceholders[placeholderIndex]
+  let timeout
+
+  if (!isDeleting && typedText.length < currentPhrase.length) {
+    // typing forward, one letter at a time
+    timeout = setTimeout(() => {
+      setTypedText(currentPhrase.slice(0, typedText.length + 1))
+    }, 60)
+  } else if (!isDeleting && typedText.length === currentPhrase.length) {
+    // full phrase typed — hold for 2s before erasing
+    timeout = setTimeout(() => setIsDeleting(true), 2000)
+  } else if (isDeleting && typedText.length > 0) {
+    // erasing, faster than typing
+    timeout = setTimeout(() => {
+      setTypedText(currentPhrase.slice(0, typedText.length - 1))
+    }, 30)
+  } else if (isDeleting && typedText.length === 0) {
+    // move to next phrase
+    setIsDeleting(false)
+    setPlaceholderIndex(prev => (prev + 1) % searchPlaceholders.length)
+  }
+
+  return () => clearTimeout(timeout)
+}, [typedText, isDeleting, placeholderIndex])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -108,14 +129,16 @@ export default function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
+            
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={handleSearch}
               onFocus={() => setIsFocused(true)}
-              placeholder={searchPlaceholders[placeholderIndex]}
+              placeholder={typedText}
               className="bg-transparent w-full text-sm text-white placeholder-zinc-500 font-medium outline-none"
             />
+            <span className="w-[1px] h-4 bg-zinc-500 animate-pulse ml-[-6px]" />
           </div>
 
           {/* SIGNIFICANTLY WIDER DROPDOWN CONTAINER */}
@@ -238,7 +261,7 @@ export default function Navbar() {
                     key={cat}
                     href={`/products?category=${encodeURIComponent(cat)}`}
                     onClick={() => setCategoriesOpen(false)}
-                    className="block px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-700 hover:bg-gray-50 hover:text-[#1A1A1A] transition-colors normal-case"
+                    className="block px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-700 hover:bg-[#C6FF1E] hover:text-[#1A1A1A] transition-colors normal-case"
                   >
                     {cat}
                   </Link>
