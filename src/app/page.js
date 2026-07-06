@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 import { Swiper, SwiperSlide } from "swiper/react";
+import { ShieldCheckIcon as ShieldSolid, TruckIcon, LockClosedIcon } from '@heroicons/react/24/solid'
+import { ArrowPathIcon, TagIcon, StarIcon, ShieldCheckIcon as ShieldOutline } from '@heroicons/react/24/outline'
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
-import { ShieldCheck, Truck, RotateCcw, Lock, Tag, Star } from 'lucide-react'
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -40,16 +41,16 @@ const brandLogos = [
 ]
 
 const whyUs = [
-  { icon: ShieldCheck, title: '100% Authentic', desc: 'Directly from brands. Every product verified.', pill: 'Verified Quality' },
-  { icon: Truck, title: 'Free Delivery', desc: 'Free shipping on prepaid orders above ₹499.', pill: 'No Extra Charges' },
-  { icon: RotateCcw, title: 'Easy Returns', desc: '7-day hassle-free return policy.', pill: 'Quick & Easy' },
-  { icon: Lock, title: 'Secure Payments', desc: 'Razorpay secured. UPI, Cards, Net banking & more.', pill: '100% Safe' },
+  { icon: ShieldSolid, title: '100% Authentic', desc: 'Directly from brands. Every product verified.', pillIcon: '✓', pill: 'Verified Quality' },
+  { icon: TruckIcon, title: 'Free Delivery', desc: 'Free shipping on prepaid orders above ₹499.', pillIcon: '🚚', pill: 'No Extra Charges' },
+  { icon: ArrowPathIcon, title: 'Easy Returns', desc: '7-day hassle-free return policy.', pillIcon: '↩', pill: 'Quick & Easy' },
+  { icon: LockClosedIcon, title: 'Secure Payments', desc: 'Razorpay secured. UPI, Cards, Net banking & more.', pillIcon: '🔒', pill: '100% Safe' },
 ]
 
 const trustHighlights = [
-  { icon: Tag, title: 'Best Prices', desc: 'Unbeatable offers on top brands' },
-  { icon: Star, title: '4.8/5 Customer Rating', desc: 'Trusted by 50,000+ happy customers' },
-  { icon: ShieldCheck, title: 'Brand Promise', desc: 'Genuine products. Always.' },
+  { icon: TagIcon, title: 'Best Prices', desc: 'Unbeatable offers on top brands' },
+  { icon: StarIcon, title: '4.8/5 Customer Rating', desc: 'Trusted by 50,000+ happy customers' },
+  { icon: ShieldOutline, title: 'Brand Promise', desc: 'Genuine products. Always.' },
 ]
 
 function ShopByCategory() {
@@ -231,22 +232,18 @@ export default function Home() {
       <HeroBanner />
 
       {/* TRUST STRIP */}
-      {/* TRUST STRIP */}
+{/* TRUST STRIP */}
 <div className="mx-16 mt-8">
   <div className="grid grid-cols-4 gap-4">
     {whyUs.map(item => {
       const Icon = item.icon
       return (
-        <div key={item.title} className="border border-gray-200 rounded-2xl p-5 flex flex-col gap-3 bg-white">
-          <div className="w-11 h-11 rounded-full bg-green-50 flex items-center justify-center">
-            <Icon className="w-6 h-6 text-green-600" strokeWidth={2} />
-          </div>
-          <div>
-            <p className="font-bold text-[#1A1A1A]">{item.title}</p>
-            <p className="text-sm text-gray-400 leading-relaxed mt-1">{item.desc}</p>
-          </div>
-          <span className="w-fit text-xs font-semibold bg-green-50 text-green-700 px-3 py-1.5 rounded-full mt-1">
-            ✓ {item.pill}
+        <div key={item.title} className="border border-gray-200 rounded-2xl p-6 flex flex-col gap-2 bg-white">
+          <Icon className="w-9 h-9 text-green-600 mb-1" />
+          <p className="font-bold text-[#1A1A1A] text-[15px]">{item.title}</p>
+          <p className="text-sm text-gray-400 leading-snug">{item.desc}</p>
+          <span className="w-fit text-xs font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-full mt-2">
+            {item.pillIcon} {item.pill}
           </span>
         </div>
       )
@@ -258,7 +255,7 @@ export default function Home() {
       const Icon = item.icon
       return (
         <div key={item.title} className="flex items-center gap-3 px-4 first:pl-0">
-          <Icon className="w-6 h-6 text-green-600 shrink-0" strokeWidth={2} />
+          <Icon className="w-6 h-6 text-green-600 shrink-0" />
           <div>
             <p className="font-bold text-[#1A1A1A] text-sm">{item.title}</p>
             <p className="text-sm text-gray-500 leading-snug">{item.desc}</p>
