@@ -214,7 +214,7 @@ export default function Navbar() {
 
       {/* FIXED VISIBILITY LINKS AREA */}
       <div className="flex items-center justify-center gap-8 px-8 py-3.5 bg-[#080B0D] border-b border-zinc-900 text-xs font-bold uppercase tracking-wider text-zinc-300">
-        <span className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors">All categories text-xs</span>
+        <span className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors text-xs">All categories▾</span>
         <span className="cursor-pointer hover:text-white transition-colors">Brands</span>
         <span className="bg-[#C6FF1E] text-black font-black px-3 py-0.5 rounded-full text-[10px]">Offers</span>
         <span className="cursor-pointer hover:text-white transition-colors">Best sellers</span>
