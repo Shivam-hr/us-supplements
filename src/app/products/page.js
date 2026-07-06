@@ -120,29 +120,33 @@ function ProductsPageContent() {
 
   const allBrands = useMemo(() => [...new Set(products.map(p => p.brand))].sort(), [products])
 
-  const filtered = useMemo(() => {
+const filtered = useMemo(() => {
     let result = [...products]
-   if (search.trim()) {
+    
+    if (search.trim()) {
       let q = search.toLowerCase().trim()
       
-      // NEW LOGIC: Check our dictionary and replace words
-      // This will turn "mb protein" into "muscleblaze protein"
+      // 1. Swap out synonyms
       Object.keys(searchSynonyms).forEach(key => {
-        // \b means word boundary, so it only replaces exact words (not parts of words)
         const regex = new RegExp(`\\b${key}\\b`, 'gi')
         q = q.replace(regex, searchSynonyms[key])
       })
 
-      result = result.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
-      )
+      // 2. Split the search query into individual words (e.g., ["muscleblaze", "shaker"])
+      const searchWords = q.split(/\s+/)
+
+      // 3. Make sure EVERY word exists somewhere in the product name, brand, or category
+      result = result.filter(p => {
+        const searchableText = `${p.name} ${p.brand} ${p.category}`.toLowerCase()
+        return searchWords.every(word => searchableText.includes(word))
+      })
     }
+
     if (selectedCategory !== 'All') result = result.filter(p => p.category === selectedCategory)
     if (selectedBrands.length > 0) result = result.filter(p => selectedBrands.includes(p.brand))
     if (inStockOnly) result = result.filter(p => p.in_stock)
     result = result.filter(p => p.price <= priceMax)
+    
     switch (sort) {
       case 'price_asc': result.sort((a, b) => a.price - b.price); break
       case 'price_desc': result.sort((a, b) => b.price - a.price); break
