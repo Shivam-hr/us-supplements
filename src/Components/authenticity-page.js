@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ShieldCheck, PackageCheck, BadgeCheck, Truck, ArrowRight, Headphones, ChevronRight, UserCheck, Link2 } from 'lucide-react'
+import { ShieldCheck, PackageCheck, BadgeCheck, Truck, ArrowRight, Headphones, ChevronRight } from 'lucide-react'
 
 const brands = [
   {
@@ -92,48 +92,22 @@ export default function AuthenticityPage() {
     <div className="min-h-screen bg-[#F7F8FA] pb-16">
 
       {/* HERO */}
-      <div className="relative overflow-hidden bg-[#0A0B0D]">
+      <div
+        className="px-16 py-20 relative overflow-hidden"
+        style={{ background: 'linear-gradient(180deg, #101214 0%, #16181B 55%, #F7F8FA 100%)' }}
+      >
+        <div className="grid grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
 
-        {/* Full-bleed photo — fills entire hero height, right edge to edge, no letterboxing */}
-        <div className="absolute inset-y-0 right-[10px] w-[48%] hidden md:block">
-          <img
-            src="/images/model/hero-model.png"
-            alt="US Supplements"
-            className="w-full h-full object-cover object-right"
-          />
-          {/* Gradient so the photo blends into the dark bg on its left edge instead of a hard cut */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A0B0D] via-[#0A0B0D]/40 to-transparent w-1/2" />
-
-          {/* Floating 100% Authentic shield badge */}
-          <div className="absolute top-10 right-16 flex flex-col items-center justify-center w-32 h-36 drop-shadow-[0_0_18px_rgba(198,255,30,0.35)]">
-            <svg viewBox="0 0 100 116" className="absolute inset-0 w-full h-full">
-              <path
-                d="M50 2 L94 18 V56 C94 84 74 102 50 114 C26 102 6 84 6 56 V18 Z"
-                fill="rgba(10,11,13,0.55)"
-                stroke="#C6FF1E"
-                strokeWidth="1.5"
-              />
-            </svg>
-            <div className="relative flex flex-col items-center justify-center gap-1 pt-2">
-              <span className="text-white font-black text-xl">100%</span>
-              <span className="text-white text-[10px] font-bold tracking-wider uppercase -mt-1">Authentic</span>
-              <ShieldCheck className="w-4 h-4 text-[#C6FF1E] mt-1" strokeWidth={2.5} />
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 px-16 pt-10 pb-16">
-          <div className="max-w-xl">
-            <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-[#C6FF1E] border border-[#C6FF1E]/40 rounded-full px-4 py-1.5 mb-6">
+          {/* Left: copy */}
+          <div>
+            <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-[#C6FF1E] mb-6">
               Trusted. Tested. Authentic.
             </span>
 
             <h1 className="text-5xl font-black leading-[1.1] mb-6">
               <span className="text-white">Verified </span>
               <span className="text-[#C6FF1E]">Authentic</span>
-              <br />
-              <span className="text-white">Products</span>
+              <span className="text-white"> Products</span>
             </h1>
 
             <p className="text-gray-400 text-base leading-relaxed mb-8 max-w-md">
@@ -149,43 +123,33 @@ export default function AuthenticityPage() {
             </div>
 
             {/* Icon badges row */}
-            <div className="flex items-start gap-6 mb-10">
-              <div className="flex flex-col items-center text-center gap-2 w-24">
-                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
-                  <UserCheck className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
+            <div className="flex items-center gap-8 mb-10">
+              <div className="flex flex-col items-center text-center gap-2">
+                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center text-2xl">
+                  🏷️
                 </div>
-                <p className="text-white text-sm font-bold leading-snug">Official Distributors</p>
+                <p className="text-white text-sm font-bold">Official<br />Distributors</p>
                 <p className="text-gray-500 text-xs">Sourced directly</p>
               </div>
 
-              <div className="w-px h-16 bg-zinc-800 mt-7" />
+              <div className="w-px h-16 bg-zinc-800" />
 
-              <div className="flex flex-col items-center text-center gap-2 w-24">
-                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
-                  <PackageCheck className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
+              <div className="flex flex-col items-center text-center gap-2">
+                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center text-2xl">
+                  📦
                 </div>
-                <p className="text-white text-sm font-bold leading-snug">Factory Sealed</p>
-                <p className="text-gray-500 text-xs">100% original packaging</p>
+                <p className="text-white text-sm font-bold">Factory<br />Sealed</p>
+                <p className="text-gray-500 text-xs">100% original<br />packaging</p>
               </div>
 
-              <div className="w-px h-16 bg-zinc-800 mt-7" />
+              <div className="w-px h-16 bg-zinc-800" />
 
-              <div className="flex flex-col items-center text-center gap-2 w-24">
-                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
-                  <Link2 className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
+              <div className="flex flex-col items-center text-center gap-2">
+                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center text-2xl">
+                  🔗
                 </div>
-                <p className="text-white text-sm font-bold leading-snug">Brand Verification Links</p>
-                <p className="text-gray-500 text-xs">Direct to official sites</p>
-              </div>
-
-              <div className="w-px h-16 bg-zinc-800 mt-7" />
-
-              <div className="flex flex-col items-center text-center gap-2 w-24">
-                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
-                </div>
-                <p className="text-white text-sm font-bold leading-snug">100% Authentic</p>
-                <p className="text-gray-500 text-xs">No compromises</p>
+                <p className="text-white text-sm font-bold">Brand<br />Verification Links</p>
+                <p className="text-gray-500 text-xs">Direct to<br />official sites</p>
               </div>
             </div>
 
@@ -196,14 +160,18 @@ export default function AuthenticityPage() {
               Browse Brands ↓
             </a>
           </div>
+
+          {/* Right: photo */}
+          <div className="relative h-[420px] rounded-2xl overflow-hidden">
+            <img
+              src="/images/authenticity/hero-model.jpg"
+              alt="US Supplements"
+              className="w-full h-full object-cover"
+            />
+          </div>
+
         </div>
       </div>
-
-      {/* Smooth transition strip: dark hero → light grey content below */}
-      <div
-        className="h-24"
-        style={{ background: 'linear-gradient(180deg, #0A0B0D 0%, #F7F8FA 100%)' }}
-      />
 
       {/* Brand verification links */}
       <div id="verify-brands" className="px-16 py-12 bg-[#F7F8FA] scroll-mt-24">
