@@ -278,7 +278,7 @@ export default function Navbar() {
 
         <span className="bg-[#C6FF1E] text-black font-black px-3 py-0.5 rounded-full text-[10px]">Offers</span>
         <span className="cursor-pointer hover:text-white transition-colors">Best sellers</span>
-        <span className="cursor-pointer hover:text-white transition-colors">Authenticity</span>
+        <Link href="/authenticity" className="cursor-pointer hover:text-white transition-colors">Authenticity</Link>
         <Link href="/track-order" className="cursor-pointer hover:text-white transition-colors">Track order</Link>
         <span className="cursor-pointer hover:text-white transition-colors">Support</span>
       </div>
