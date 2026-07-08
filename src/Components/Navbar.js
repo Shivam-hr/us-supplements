@@ -339,7 +339,7 @@ export default function Navbar() {
         <span className="cursor-pointer hover:text-white transition-colors">Best sellers</span>
         <Link href="/authenticity" className="cursor-pointer hover:text-white transition-colors">Authenticity</Link>
         <Link href="/track-order" className="cursor-pointer hover:text-white transition-colors">Track order</Link>
-        <span className="cursor-pointer hover:text-white transition-colors">Support</span>
+        <Link href="/support" className="cursor-pointer hover:text-white transition-colors">Support</Link>
       </div>
 
      
