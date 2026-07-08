@@ -277,30 +277,79 @@ export default function TrackOrderPage() {
         )}
 
         {/* HELP SECTION */}
-        <div className="mt-6 rounded-3xl p-6" style={{ background: '#F8F6F1' }}>
-          <p className="font-black text-[#161616] text-base mb-1">Need help with your order?</p>
-          <p className="text-sm text-gray-500 mb-5">Our support team is here to assist you.</p>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { icon: '💬', label: 'WhatsApp Support', sub: 'Quick chat with our team', href: 'https://wa.me/919999999999' },
-              { icon: '📧', label: 'Email Support', sub: 'support@ussupplements.in', href: 'mailto:support@ussupplements.in' },
-              { icon: '📞', label: 'Call Us', sub: '+91 12345 67890', href: 'tel:+911234567890' },
-            ].map(item => (
+         <div className="px-16 mt-16">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-center text-xl font-black text-[#1A1A1A] mb-1">Contact Our Support Team</h2>
+          <p className="text-center text-sm text-gray-500 mb-8">
+            Choose the best way to reach us.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            {/* WhatsApp */}
+            <div className="bg-[#B7FF1E] rounded-[24px] p-7 flex flex-col gap-3">
+              <div className="w-11 h-11 rounded-full bg-white/40 flex items-center justify-center">
+                <MessageCircle className="w-6 h-6 text-[#1A1A1A]" strokeWidth={2} />
+              </div>
+              <h3 className="font-bold text-[#1A1A1A] text-base">WhatsApp Support</h3>
+              <p className="text-sm text-[#1A1A1A]/70 leading-relaxed">
+                Chat with us instantly on WhatsApp for quick assistance.
+              </p>
               <a
-                key={item.label}
-                href={item.href}
+                href="https://wa.me/911234567880"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-white rounded-2xl p-4 flex flex-col gap-1 hover:shadow-sm transition-all border border-transparent hover:border-gray-200"
+                className="mt-auto bg-[#1A1A1A] text-[#B7FF1E] text-sm font-bold text-center py-3 rounded-xl hover:bg-[#2A2A2A] transition-colors flex items-center justify-center gap-2"
               >
-                <span className="text-2xl">{item.icon}</span>
-                <p className="text-xs font-black text-[#161616]">{item.label}</p>
-                <p className="text-[10px] text-gray-400">{item.sub}</p>
+                Chat on WhatsApp
+                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
               </a>
-            ))}
+            </div>
+
+            {/* Email */}
+            <div
+              className="bg-white rounded-[24px] p-7 flex flex-col gap-3"
+              style={{ boxShadow: '0 10px 30px rgba(0,0,0,.05)' }}
+            >
+              <div className="w-11 h-11 rounded-full bg-[#F0FFC4] flex items-center justify-center">
+                <Mail className="w-6 h-6 text-[#1A1A1A]" strokeWidth={2} />
+              </div>
+              <h3 className="font-bold text-[#1A1A1A] text-base">Email Support</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Drop us an email and we&apos;ll get back to you within 24 hours.
+              </p>
+              <a
+                href="mailto:support@ussupplements.in"
+                className="mt-auto border border-gray-200 text-[#1A1A1A] text-sm font-semibold text-center py-3 rounded-xl hover:border-[#1A1A1A] transition-colors flex items-center justify-center gap-2"
+              >
+                Send an Email
+                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+              </a>
+            </div>
+
+            {/* Call */}
+            <div
+              className="bg-white rounded-[24px] p-7 flex flex-col gap-3"
+              style={{ boxShadow: '0 10px 30px rgba(0,0,0,.05)' }}
+            >
+              <div className="w-11 h-11 rounded-full bg-[#F0FFC4] flex items-center justify-center">
+                <Phone className="w-6 h-6 text-[#1A1A1A]" strokeWidth={2} />
+              </div>
+              <h3 className="font-bold text-[#1A1A1A] text-base">Call Us</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Speak directly with our support team.
+              </p>
+              <a
+                href="tel:+911234567880"
+                className="mt-auto border border-gray-200 text-[#1A1A1A] text-sm font-semibold text-center py-3 rounded-xl hover:border-[#1A1A1A] transition-colors flex items-center justify-center gap-2"
+              >
+                Call +91 12345 67880
+                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+              </a>
+            </div>
+
           </div>
         </div>
-
+      </div>
       </div>
     </div>
   )
