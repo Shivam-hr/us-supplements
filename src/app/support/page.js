@@ -129,7 +129,8 @@ export default function SupportPage() {
       </div>
 
       {/* QUICK HELP CARDS */}
-      <div className="px-16 -mt-10 relative z-10">
+      
+      <div className="px-16 mt-14">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-center text-xl font-black text-[#1A1A1A] mb-1">Quick Help</h2>
           <p className="text-center text-sm text-gray-500 mb-8">
