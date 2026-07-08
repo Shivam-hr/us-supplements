@@ -136,12 +136,12 @@ function Hero() {
 
 function ShopByCategory() {
   const categories = [
-    { name: "Whey Protein", img: "/images/Category/protein-powder.jpg" },
-    { name: "Mass Gainers", img: "/images/Category/Mass-Gainer.jpg" },
+    { name: "Whey Protein", img: "/images/Category/protein-powder.png" },
+    { name: "Mass Gainers", img: "/images/Category/Mass-Gainer.png" },
     { name: "Pre-Workout", img: "/images/Category/pre-workout.avif" },
-    { name: "Creatine", img: "/images/Category/creatine.jpg" },
-    { name: "Vitamins", img: "/images/Category/Multivitamin.jpg" },
-    { name: "Bcaa", img: "/images/Category/Bcaa.webp" },
+    { name: "Creatine", img: "/images/Category/creatine.png" },
+    { name: "Vitamins", img: "/images/Category/Vitamins.jpg" },
+    { name: "Health & Wellness", img: "/images/Category/Health&Wellness.jpg" },
     { name: "Accessories", img: "/images/Category/accessories.jpeg" },
   ];
 
