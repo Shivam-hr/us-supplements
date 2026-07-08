@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" style={{ fontSize: '16px' }}>
+    <html lang="en" className="scroll-smooth" style={{ fontSize: '16px' }}>
       <body className={`${geist.className} bg-white text-[#1A1A1A]`}>
         <CartProvider>
           <Navbar />

@@ -28,6 +28,7 @@ export default function Navbar() {
   const [liveResults, setLiveResults] = useState([])
   const [defaultProducts, setDefaultProducts] = useState([])
   const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
 
   useEffect(() => {
   const currentPhrase = searchPlaceholders[placeholderIndex]
@@ -200,21 +201,79 @@ export default function Navbar() {
 
         {/* Profile/Cart Actions Panel */}
         <div className="flex items-center gap-6 text-white shrink-0">
-          {user ? (
-            <Link href="/account" className="flex flex-col items-center gap-1 hover:text-[#C6FF1E] transition-colors group">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 group-hover:text-[#C6FF1E]">Account</span>
+        {user ? (
+  <div
+    className="relative"
+    onMouseEnter={() => setAccountOpen(true)}
+    onMouseLeave={() => setAccountOpen(false)}
+  >
+    <div className="flex flex-col items-center gap-1 hover:text-[#C6FF1E] transition-colors group cursor-pointer">
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+      <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 group-hover:text-[#C6FF1E]">
+        {user.user_metadata?.full_name?.split(' ')[0] || 'Account'}
+      </span>
+    </div>
+
+    {accountOpen && (
+      <div className="absolute top-full right-0 pt-3 w-56 z-50">
+        <div className="bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] border border-gray-200 overflow-hidden">
+
+          {/* User info header */}
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+            <p className="text-xs font-bold text-[#1A1A1A]">
+              {user.user_metadata?.full_name || 'Your Account'}
+            </p>
+            <p className="text-[10px] text-gray-400 mt-0.5 truncate">{user.email}</p>
+          </div>
+
+          {/* Menu items */}
+          {[
+            { icon: '👤', label: 'My Profile', href: '/account' },
+            { icon: '📦', label: 'My Orders', href: '/account' },
+            { icon: '❤️', label: 'Wishlist', href: '/wishlist' },
+            { icon: '📍', label: 'Saved Addresses', href: '/account' },
+          ].map(item => (
+            <Link
+              key={item.label}
+              href={item.href}
+              onClick={() => setAccountOpen(false)}
+              className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 hover:bg-[#C6FF1E] hover:text-[#1A1A1A] transition-colors font-medium"
+            >
+              <span className="text-base">{item.icon}</span>
+              {item.label}
             </Link>
-          ) : (
-            <Link href="/login" className="flex flex-col items-center gap-1 hover:text-[#C6FF1E] transition-colors group">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 group-hover:text-[#C6FF1E]">Login</span>
-            </Link>
-          )}
+          ))}
+
+          {/* Divider */}
+          <div className="border-t border-gray-100" />
+
+          {/* Logout */}
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut()
+              setUser(null)
+              setAccountOpen(false)
+              router.push('/')
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium"
+          >
+            <span className="text-base">↪️</span>
+            Logout
+          </button>
+        </div>
+      </div>
+      )}
+    </div>
+  ) : (
+    <Link href="/login" className="flex flex-col items-center gap-1 hover:text-[#C6FF1E] transition-colors group">
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+      <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 group-hover:text-[#C6FF1E]">Login</span>
+    </Link>
+  )}
 
           <Link href="/wishlist" className="flex flex-col items-center gap-1 hover:text-[#C6FF1E] transition-colors group">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
