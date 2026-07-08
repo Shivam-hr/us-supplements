@@ -12,11 +12,11 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 const banners = [
-  { id: 1, image: '/images/banners/avvatar-whey.jpg', alt: 'Avvatar Whey Protein' },
-  { id: 2, image: '/images/banners/avvatar-wafer.jpg', alt: 'Avvatar Protein Wafer Bar' },
-  { id: 3, image: '/images/banners/avvatar-matcha.jpg', alt: 'Avvatar Matcha Wafer' },
-  { id: 4, image: '/images/banners/beastlife-creatine.webp', alt: 'BeastLife Creatine Nano' },
-  { id: 5, image: '/images/banners/beastlife-protein.webp', alt: 'BeastLife Performance Protein' },
+  { id: 1, image: '/images/banners/01.png', alt: 'Avvatar Whey Protein' },
+  { id: 2, image: '/images/banners/02.png', alt: 'Avvatar Protein Wafer Bar' },
+  { id: 3, image: '/images/banners/03.png', alt: 'Avvatar Matcha Wafer' },
+  { id: 4, image: '/images/banners/04.png', alt: 'BeastLife Creatine Nano' },
+  { id: 5, image: '/images/banners/5.png', alt: 'BeastLife Performance Protein' },
 ]
 
 const brandLogos = [
