@@ -1,13 +1,12 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 import { Swiper, SwiperSlide } from "swiper/react";
 import { ShieldCheckIcon as ShieldSolid, TruckIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { ArrowPathIcon, TagIcon, StarIcon, ShieldCheckIcon as ShieldOutline } from '@heroicons/react/24/outline'
-import { ShieldCheck, ArrowRight, UserCheck as UserCheckIcon, PackageCheck as PackageCheckIcon } from 'lucide-react'
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
-import ProductCard from '../Components/ProductCard'
+import { ShieldCheck, ArrowRight, UserCheck as UserCheckIcon, PackageCheck as PackageCheckIcon, Star, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Autoplay } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -60,6 +59,15 @@ const trustHighlights = [
 ]
 
 function Hero() {
+  const [current, setCurrent] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent(prev => (prev + 1) % banners.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
+
   const features = [
     { icon: ShieldSolid, title: '100% Authentic', sub: 'Original Products' },
     { icon: UserCheckIcon, title: 'Authorized Brands', sub: 'Direct Distributors' },
@@ -70,14 +78,29 @@ function Hero() {
   return (
     <div className="relative overflow-hidden bg-[#101214]">
       <div className="absolute inset-y-0 right-[10px] w-[46%] hidden md:block">
-        <img
-          src="/images/model/hero-model.png"
-          alt="US Supplements"
-          className="w-full h-full object-cover object-right"
-        />
+        {banners.map((banner, i) => (
+          <img
+            key={banner.id}
+            src={banner.image}
+            alt={banner.alt}
+            className={`absolute inset-0 w-full h-full object-cover object-right transition-opacity duration-1000 ${i === current ? 'opacity-100' : 'opacity-0'}`}
+          />
+        ))}
         <div className="absolute inset-0 bg-gradient-to-r from-[#101214] via-[#101214]/35 to-transparent w-1/2" />
 
-        <div className="absolute top-10 right-10 w-32 h-32">
+        {/* Slider dot indicators */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          {banners.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              aria-label={`Show banner ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${i === current ? 'w-6 bg-[#B7FF1E]' : 'w-1.5 bg-white/40'}`}
+            />
+          ))}
+        </div>
+
+        <div className="absolute top-10 right-10 w-32 h-32 z-20">
           <div className="absolute inset-0 rounded-full border border-dashed border-[#B7FF1E]/50 animate-[spin_18s_linear_infinite]" />
           <div className="absolute inset-3 rounded-full bg-[#101214] border border-[#B7FF1E]/60 flex flex-col items-center justify-center gap-1">
             <ShieldCheck className="w-5 h-5 text-[#B7FF1E]" strokeWidth={2} />
@@ -150,7 +173,7 @@ function ShopByCategory() {
     <div className="py-20 bg-[#F7F8FA]">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-12">
-          <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#B7FF1E] mb-3">
+          <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#4d7a00] mb-3">
             Shop by category
           </span>
           <h2 className="text-3xl font-black text-[#161616] mb-2">
@@ -161,15 +184,15 @@ function ShopByCategory() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4">
           {categories.map(cat => (
             <Link
               key={cat.name}
               href={`/products?search=${encodeURIComponent(cat.name)}`}
-              className="group bg-white border border-[#E5E7EB] rounded-[24px] p-4 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2 hover:border-[#B7FF1E] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)]"
+              className="group bg-white border border-[#E5E7EB] rounded-[24px] p-3 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2 hover:border-[#B7FF1E] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)]"
             >
               <div
-                className="w-full aspect-square rounded-2xl flex items-center justify-center p-3"
+                className="w-full aspect-square rounded-2xl flex items-center justify-center p-1.5"
                 style={{ background: 'linear-gradient(180deg, #FFFFFF, #F8F6F1)' }}
               >
                 <img
@@ -178,7 +201,7 @@ function ShopByCategory() {
                   className="w-full h-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-110"
                 />
               </div>
-              <span className="text-[18px] font-semibold text-[#161616] text-center leading-tight">
+              <span className="text-[15px] font-semibold text-[#161616] text-center leading-tight">
                 {cat.name}
               </span>
             </Link>
@@ -199,9 +222,75 @@ function ShopByCategory() {
   )
 }
 
+function ProductCard({ product, showBrand }) {
+  const discount = Math.round((product.mrp - product.price) / product.mrp * 100)
+  return (
+    <Link href={`/products/${product.id}`}>
+      <div className="bg-white rounded-[24px] p-4 cursor-pointer group transition-all duration-300 hover:-translate-y-2.5"
+        style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}
+        onMouseEnter={e => e.currentTarget.style.boxShadow = '0 25px 50px rgba(0,0,0,0.12)'}
+        onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.06)'}
+      >
+        <div
+          className="h-52 w-full rounded-2xl mb-4 flex items-center justify-center p-3"
+          style={{ background: 'linear-gradient(180deg, #FFFFFF, #F8F6F1)' }}
+        >
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-contain group-hover:scale-105 transition-transform"
+          />
+        </div>
+
+        {showBrand && (
+          <p className="text-xs text-[#6B7280] mb-1">{product.brand}</p>
+        )}
+
+        {product.badge && (
+          <span className={`inline-block text-xs px-2.5 py-0.5 rounded-full font-semibold mb-2 ${product.badge === 'New' ? 'bg-[#101214] text-[#B7FF1E]' : 'bg-[#B7FF1E] text-[#101214]'}`}>
+            {product.badge}
+          </span>
+        )}
+
+        <p className="text-sm font-semibold text-[#161616] mb-2 leading-snug">{product.name}</p>
+
+        {product.rating && (
+          <div className="flex items-center gap-1 mb-2">
+            <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
+            <span className="text-xs font-semibold text-[#161616]">{product.rating}</span>
+            {product.reviews && (
+              <span className="text-xs text-[#6B7280]">({product.reviews})</span>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-baseline gap-2 mb-4">
+          <span className="text-base font-bold text-[#161616]">₹{product.price.toLocaleString()}</span>
+          {product.mrp > product.price && (
+            <>
+              <span className="text-xs text-[#9CA3AF] line-through">₹{product.mrp.toLocaleString()}</span>
+              <span className="text-xs text-green-600 font-semibold">{discount}% off</span>
+            </>
+          )}
+        </div>
+
+        <button
+          onClick={e => e.preventDefault()}
+          className="w-full bg-[#B7FF1E] hover:bg-[#C8FF4A] text-[#101214] text-sm font-semibold rounded-[14px] transition-colors flex items-center justify-center gap-2"
+          style={{ height: '48px' }}
+        >
+          <ShoppingCart className="w-4 h-4" strokeWidth={2} />
+          Add to Cart
+        </button>
+      </div>
+    </Link>
+  )
+}
+
 // 2. THIS IS THE ONLY DEFAULT EXPORT
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([])
+  const trendingSwiperRef = useRef(null)
 
   useEffect(() => {
     const fetch = async () => {
@@ -261,42 +350,60 @@ export default function Home() {
       <div className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#B7FF1E] mb-3">
+            <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#4d7a00] mb-3">
               Best sellers
             </span>
             <h2 className="text-3xl font-black text-[#161616] mb-2">
               Top Picks, Trusted by Thousands
             </h2>
             <p className="text-[#6B7280] text-sm">
-              Our customers&apos; favorite supplements.
+              Our customers' favorite supplements.
             </p>
           </div>
 
-          <Swiper
-            className="trending-swiper px-10 py-2"
-            modules={[Navigation, Autoplay]}
-            navigation
-            autoplay={{
-              delay: 3500,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true,
-            }}
-            loop={false}
-            rewind={true}
-            spaceBetween={24}
-            breakpoints={{
-              320: { slidesPerView: 1.3 },
-              640: { slidesPerView: 2 },
-              1024: { slidesPerView: 3 },
-              1280: { slidesPerView: 5 },
-            }}
-          >
-            {featuredProducts.slice(0, 8).map(p => (
-              <SwiperSlide key={p.id}>
-                <ProductCard product={p} showBrand={true} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
+          <div className="relative">
+            <button
+              onClick={() => trendingSwiperRef.current?.slidePrev()}
+              aria-label="Previous products"
+              className="hidden md:flex absolute -left-4 top-[38%] -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-[#E5E7EB] items-center justify-center text-[#161616] shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:border-[#B7FF1E] transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" strokeWidth={2.5} />
+            </button>
+
+            <Swiper
+              className="trending-swiper"
+              modules={[Autoplay]}
+              onSwiper={swiper => (trendingSwiperRef.current = swiper)}
+              autoplay={{
+                delay: 3500,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
+              loop={false}
+              rewind={true}
+              spaceBetween={24}
+              breakpoints={{
+                320: { slidesPerView: 1.3 },
+                640: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+                1280: { slidesPerView: 5 },
+              }}
+            >
+              {featuredProducts.slice(0, 8).map(p => (
+                <SwiperSlide key={p.id}>
+                  <ProductCard product={p} showBrand={true} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+
+            <button
+              onClick={() => trendingSwiperRef.current?.slideNext()}
+              aria-label="Next products"
+              className="hidden md:flex absolute -right-4 top-[38%] -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-[#E5E7EB] items-center justify-center text-[#161616] shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:border-[#B7FF1E] transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" strokeWidth={2.5} />
+            </button>
+          </div>
 
           <div className="flex justify-center mt-10">
             <Link
