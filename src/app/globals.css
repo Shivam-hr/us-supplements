@@ -29,6 +29,35 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
+
+.trending-swiper .swiper-button-prev,
+.trending-swiper .swiper-button-next {
+  width: 40px;
+  height: 40px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: #161616;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+}
+
+.trending-swiper .swiper-button-prev:hover,
+.trending-swiper .swiper-button-next:hover {
+  background: #b7ff1e;
+  color: #101214;
+}
+
+.trending-swiper .swiper-button-prev::after,
+.trending-swiper .swiper-button-next::after {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.trending-swiper .swiper-button-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
 /* Hide scrollbar on horizontally-scrollable carousels (e.g. brand verification carousel) while keeping scroll functionality */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
