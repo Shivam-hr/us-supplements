@@ -1,463 +1,307 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { useState } from 'react'
+import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { Swiper, SwiperSlide } from "swiper/react";
-import { ShieldCheckIcon as ShieldSolid, TruckIcon, LockClosedIcon } from '@heroicons/react/24/solid'
-import { ArrowPathIcon, TagIcon, StarIcon, ShieldCheckIcon as ShieldOutline } from '@heroicons/react/24/outline'
-import { ShieldCheck, ArrowRight, UserCheck as UserCheckIcon, PackageCheck as PackageCheckIcon, Star, ShoppingCart } from 'lucide-react'
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
 
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+const ACCENT = '#B7FF1E'
 
+export default function TrackOrderPage() {
+  const [orderId, setOrderId] = useState('')
+  const [order, setOrder] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [notFound, setNotFound] = useState(false)
+  const [searched, setSearched] = useState(false)
 
-const brandLogos = [
-  { name: 'Optimum Nutrition', image: '/images/logo/on.png' },
-  { name: 'MuscleBlaze', image: '/images/logo/mb.png' },
-  { name: 'Avvatar', image: '/images/logo/avvatar.png' },
-  { name: 'MuscleTech', image: '/images/logo/muscletech.png' },
-  { name: 'GNC', image: '/images/logo/gnc.png' },
-  { name: 'Elev', image: '/images/logo/elev.png' },
-  { name: 'GXN', image: '/images/logo/gxn.png' },
-  { name: 'One Science', image: '/images/logo/onescience.jpeg' },
-  { name: 'Anabolic Muscle', image: '/images/logo/anabolic.webp' },
-  { name: 'Applied Nutrition', image: '/images/logo/appliednutrition.png' },
-  { name: 'GAT', image: '/images/logo/gat.png' },
-  { name: 'Kevin Levrone', image: '/images/logo/kevin.jpg' },
-  { name: 'Labrada', image: '/images/logo/labrada.png' },
-  { name: 'Wellcore', image: '/images/logo/wellcore.png' },
-  { name: 'AS-IT-IS', image: '/images/logo/asitis.png' },
-  { name: 'Big Muscle', image: '/images/logo/Bigmes.webp' },
-  { name: 'Dymatize', image: '/images/logo/dymatize.jpeg' },
-  { name: 'OSN', image: '/images/logo/onescience.jpeg' }, 
-]
+  const handleTrack = async () => {
+    if (!orderId.trim()) return
+    setLoading(true)
+    setNotFound(false)
+    setOrder(null)
+    setSearched(true)
 
-const whyUs = [
-  { icon: ShieldSolid, title: '100% Authentic', desc: 'Directly from brands. Every product verified.', pillIcon: '✓', pill: 'Verified Quality' },
-  { icon: TruckIcon, title: 'Free Delivery', desc: 'Free shipping on prepaid orders above ₹499.', pillIcon: '🚚', pill: 'No Extra Charges' },
-  { icon: ArrowPathIcon, title: 'Easy Returns', desc: '7-day hassle-free return policy.', pillIcon: '↩', pill: 'Quick & Easy' },
-  { icon: LockClosedIcon, title: 'Secure Payments', desc: 'Razorpay secured. UPI, Cards, Net banking & more.', pillIcon: '🔒', pill: '100% Safe' },
-]
+    // Strip USS- prefix if user types it
+    const cleanId = orderId.replace('USS-', '').toLowerCase()
 
-const trustHighlights = [
-  { icon: TagIcon, title: 'Best Prices', desc: 'Unbeatable offers on top brands' },
-  { icon: StarIcon, title: '4.8/5 Customer Rating', desc: 'Trusted by 50,000+ happy customers' },
-  { icon: ShieldOutline, title: 'Brand Promise', desc: 'Genuine products. Always.' },
-]
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .ilike('id', `${cleanId}%`)
+      .single()
 
-function ShopByCategory() {
-  const categories = [
-    { name: "Whey Protein", img: "/images/Category/protein-powder.jpg" },
-    { name: "Mass Gainers", img: "/images/Category/Mass-Gainer.jpg" },
-    { name: "Pre-Workout", img: "/images/Category/pre-workout.avif" },
-    { name: "Creatine", img: "/images/Category/creatine.jpg" },
-    { name: "Vitamins", img: "/images/Category/Multivitamin.jpg" },
-    { name: "Bcaa", img: "/images/Category/Bcaa.webp" },
-    { name: "Accessories", img: "/images/Category/accessories.jpeg" },
-  ];
+    if (error || !data) {
+      setNotFound(true)
+    } else {
+      setOrder(data)
+    }
+    setLoading(false)
+  }
 
-  return (
-    <div className="py-20 bg-[#F7F8FA]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#B7FF1E] mb-3">
-            Shop by category
-          </span>
-          <h2 className="text-3xl font-black text-[#161616] mb-2">
-            Find What Powers You
-          </h2>
-          <p className="text-[#6B7280] text-sm">
-            Explore our premium range of supplements.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-5">
-          {categories.map(cat => (
-            <Link
-              key={cat.name}
-              href={`/products?search=${encodeURIComponent(cat.name)}`}
-              className="group bg-white border border-[#E5E7EB] rounded-[24px] p-4 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2 hover:border-[#B7FF1E] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)]"
-            >
-              <div
-                className="w-full aspect-square rounded-2xl flex items-center justify-center p-3"
-                style={{ background: 'linear-gradient(180deg, #FFFFFF, #F8F6F1)' }}
-              >
-                <img
-                  src={cat.img}
-                  alt={cat.name}
-                  className="w-full h-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-110"
-                />
-              </div>
-              <span className="text-[18px] font-semibold text-[#161616] text-center leading-tight">
-                {cat.name}
-              </span>
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex justify-center mt-10">
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-2 bg-white border border-[#E5E7EB] text-[#161616] font-bold text-sm rounded-xl px-6 py-3 hover:border-[#B7FF1E] transition-colors"
-          >
-            View All Categories
-            <ArrowRight className="w-4 h-4" strokeWidth={2} />
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ProductCard({ product, showBrand }) {
-  const discount = Math.round((product.mrp - product.price) / product.mrp * 100)
-  return (
-    <Link href={`/products/${product.id}`}>
-      <div className="bg-white rounded-[24px] p-4 cursor-pointer group transition-all duration-300 hover:-translate-y-2.5"
-        style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}
-        onMouseEnter={e => e.currentTarget.style.boxShadow = '0 25px 50px rgba(0,0,0,0.12)'}
-        onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.06)'}
-      >
-        <div
-          className="h-52 w-full rounded-2xl mb-4 flex items-center justify-center p-3"
-          style={{ background: 'linear-gradient(180deg, #FFFFFF, #F8F6F1)' }}
-        >
-          <img
-            src={product.image}
-            alt={product.name}
-            className="h-full w-full object-contain group-hover:scale-105 transition-transform"
-          />
-        </div>
-
-        {showBrand && (
-          <p className="text-xs text-[#6B7280] mb-1">{product.brand}</p>
-        )}
-
-        {product.badge && (
-          <span className={`inline-block text-xs px-2.5 py-0.5 rounded-full font-semibold mb-2 ${product.badge === 'New' ? 'bg-[#101214] text-[#B7FF1E]' : 'bg-[#B7FF1E] text-[#101214]'}`}>
-            {product.badge}
-          </span>
-        )}
-
-        <p className="text-sm font-semibold text-[#161616] mb-2 leading-snug">{product.name}</p>
-
-        {/* Rating — only rendered if real rating data exists on the product; no placeholder numbers */}
-        {product.rating && (
-          <div className="flex items-center gap-1 mb-2">
-            <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
-            <span className="text-xs font-semibold text-[#161616]">{product.rating}</span>
-            {product.reviews && (
-              <span className="text-xs text-[#6B7280]">({product.reviews})</span>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-baseline gap-2 mb-4">
-          <span className="text-base font-bold text-[#161616]">₹{product.price.toLocaleString()}</span>
-          {product.mrp > product.price && (
-            <>
-              <span className="text-xs text-[#9CA3AF] line-through">₹{product.mrp.toLocaleString()}</span>
-              <span className="text-xs text-green-600 font-semibold">{discount}% off</span>
-            </>
-          )}
-        </div>
-
-        <button
-          onClick={e => e.preventDefault()}
-          className="w-full bg-[#B7FF1E] hover:bg-[#C8FF4A] text-[#101214] text-sm font-semibold rounded-[14px] transition-colors flex items-center justify-center gap-2"
-          style={{ height: '48px' }}
-        >
-          <ShoppingCart className="w-4 h-4" strokeWidth={2} />
-          Add to Cart
-        </button>
-      </div>
-    </Link>
-  )
-}
-
-function Hero() {
-  const features = [
-    { icon: ShieldSolid, title: '100% Authentic', sub: 'Original Products' },
-    { icon: UserCheckIcon, title: 'Authorized Brands', sub: 'Direct Distributors' },
-    { icon: PackageCheckIcon, title: 'Secure Packaging', sub: 'Safe & Sealed' },
-    { icon: TruckIcon, title: 'Fast Delivery', sub: 'Across India' },
+  const statusSteps = [
+    { key: 'pending', label: 'Order Placed', icon: '🛒' },
+    { key: 'paid', label: 'Order Confirmed', icon: '✅' },
+    { key: 'processing', label: 'Processing', icon: '⚙️' },
+    { key: 'shipped', label: 'Shipped', icon: '📦' },
+    { key: 'delivered', label: 'Delivered', icon: '🏠' },
   ]
 
+  const statusIndex = {
+    pending: 0,
+    paid: 1,
+    processing: 2,
+    shipped: 3,
+    delivered: 4,
+    cancelled: -1,
+  }
+
+  const currentStep = order ? (statusIndex[order.status] ?? 0) : -1
+
   return (
-    <div className="relative overflow-hidden bg-[#101214]">
-      {/* Full-bleed model photo, right edge to edge */}
-      <div className="absolute inset-y-0 right-[10px] w-[46%] hidden md:block">
-        <img
-          src="/images/model/hero-model.png"
-          alt="US Supplements"
-          className="w-full h-full object-cover object-right"
+    <div className="min-h-screen" style={{ background: '#F7F8FA' }}>
+
+      {/* HERO */}
+      <div style={{ background: '#101214' }} className="px-6 pt-14 pb-20 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5"
+          style={{ backgroundImage: 'radial-gradient(circle at 30% 50%, #B7FF1E 0%, transparent 60%)' }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#101214] via-[#101214]/35 to-transparent w-1/2" />
-
-        {/* Orbiting authentic badge */}
-        <div className="absolute top-10 right-10 w-32 h-32">
-          <div className="absolute inset-0 rounded-full border border-dashed border-[#B7FF1E]/50 animate-[spin_18s_linear_infinite]" />
-          <div className="absolute inset-3 rounded-full bg-[#101214] border border-[#B7FF1E]/60 flex flex-col items-center justify-center gap-1">
-            <ShieldCheck className="w-5 h-5 text-[#B7FF1E]" strokeWidth={2} />
-            <span className="text-white text-[10px] font-bold uppercase tracking-wide">Authentic</span>
-            <span className="text-[#B7FF1E] text-[9px] font-bold uppercase">100% Guaranteed</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 px-16 py-20">
-        <div className="max-w-xl">
-          <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#B7FF1E] mb-5">
-            Trust is our promise
-          </span>
-
-          <h1 className="text-5xl font-black leading-[1.1] mb-5">
-            <span className="block text-white">Fuel Your Goals</span>
-            <span className="block text-[#B7FF1E]">The Right Way.</span>
+        <div className="max-w-2xl mx-auto text-center relative z-10">
+          <h1 className="text-4xl font-black text-white mb-3 leading-tight">
+            Track <span style={{ color: ACCENT }}>Your Order</span>
           </h1>
+          <p className="text-zinc-400 text-base mb-2">Stay updated with every step of your delivery.</p>
+          <p className="text-zinc-500 text-sm mb-10">Enter your order ID to get real-time updates.</p>
 
-          <p className="text-gray-400 text-base leading-relaxed mb-8 max-w-sm">
-            100% authentic supplements from top brands. Verified. Trusted. Delivered.
-          </p>
-
-          {/* Feature row */}
-          <div className="flex items-start gap-6 mb-9">
-            {features.map(({ icon: Icon, title, sub }) => (
-              <div key={title} className="flex flex-col items-start gap-1.5 max-w-[110px]">
-                <Icon className="w-5 h-5 text-[#B7FF1E]" strokeWidth={1.75} />
-                <p className="text-white text-xs font-bold leading-snug">{title}</p>
-                <p className="text-gray-500 text-[11px] leading-snug">{sub}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link
-              href="/products"
-              className="inline-flex items-center gap-2 bg-[#B7FF1E] hover:bg-[#C8FF4A] text-[#101214] font-bold px-7 py-3.5 rounded-xl text-sm transition-colors"
-            >
-              Shop Now
-              <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-            </Link>
-            <Link
-              href="/authenticity"
-              className="inline-flex items-center gap-2 text-white font-bold text-sm hover:text-[#B7FF1E] transition-colors px-2"
-            >
-              <ShieldCheck className="w-4 h-4" strokeWidth={2} />
-              Verify Authenticity
-              <ArrowRight className="w-4 h-4" strokeWidth={2} />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// 2. THIS IS THE ONLY DEFAULT EXPORT
-export default function Home() {
-  const [featuredProducts, setFeaturedProducts] = useState([])
-
-  useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_featured', true)
-        .eq('in_stock', true)
-        .limit(8)
-      setFeaturedProducts(data || [])
-    }
-    fetch()
-  }, [])
-
-  return (
-    <main className="pb-16 text-base">
-
-      <Hero />
-
-      {/* TRUST STRIP */}
-{/* TRUST STRIP */}
-<div className="mx-16 mt-8">
-  <div className="grid grid-cols-4 gap-4">
-    {whyUs.map(item => {
-      const Icon = item.icon
-      return (
-        <div key={item.title} className="border border-gray-200 rounded-2xl p-6 flex flex-col gap-2 bg-white">
-          <Icon className="w-9 h-9 text-green-600 mb-1" />
-          <p className="font-bold text-[#1A1A1A] text-[15px]">{item.title}</p>
-          <p className="text-sm text-gray-400 leading-snug">{item.desc}</p>
-          <span className="w-fit text-xs font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-full mt-2">
-            {item.pillIcon} {item.pill}
-          </span>
-        </div>
-      )
-    })}
-  </div>
-
-  <div className="bg-[#F7FFEA] rounded-2xl px-6 py-5 grid grid-cols-3 divide-x divide-[#E3F5B4] mt-4">
-    {trustHighlights.map(item => {
-      const Icon = item.icon
-      return (
-        <div key={item.title} className="flex items-center gap-3 px-4 first:pl-0">
-          <Icon className="w-6 h-6 text-green-600 shrink-0" />
-          <div>
-            <p className="font-bold text-[#1A1A1A] text-sm">{item.title}</p>
-            <p className="text-sm text-gray-500 leading-snug">{item.desc}</p>
-          </div>
-        </div>
-      )
-    })}
-  </div>
-</div>
-
-      {/* 3. INJECTED THE NEW COMPONENT HERE */}
-      <ShopByCategory />
-
-      {/* TRENDING NOW */}
-      <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#B7FF1E] mb-3">
-              Best sellers
-            </span>
-            <h2 className="text-3xl font-black text-[#161616] mb-2">
-              Top Picks, Trusted by Thousands
-            </h2>
-            <p className="text-[#6B7280] text-sm">
-              Our customers' favorite supplements.
-            </p>
-          </div>
-
-          <Swiper
-            className="trending-swiper px-10 py-2"
-            modules={[Navigation, Autoplay]}
-            navigation
-            autoplay={{
-              delay: 3500,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true,
-            }}
-            loop={false}
-            rewind={true}
-            spaceBetween={24}
-            breakpoints={{
-              320: { slidesPerView: 1.3 },
-              640: { slidesPerView: 2 },
-              1024: { slidesPerView: 3 },
-              1280: { slidesPerView: 5 },
+          {/* Search Card */}
+          <div className="rounded-3xl p-6"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
-            {featuredProducts.slice(0, 8).map(p => (
-              <SwiperSlide key={p.id}>
-                <ProductCard product={p} showBrand={true} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-
-          <div className="flex justify-center mt-10">
-            <Link
-              href="/products"
-              className="inline-flex items-center gap-2 bg-white border border-[#E5E7EB] text-[#161616] font-bold text-sm rounded-xl px-6 py-3 hover:border-[#B7FF1E] transition-colors"
-            >
-              View All Products
-              <ArrowRight className="w-4 h-4" strokeWidth={2} />
-            </Link>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={orderId}
+                onChange={e => setOrderId(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleTrack()}
+                placeholder="e.g. USS123456789"
+                className="flex-1 px-5 text-sm font-medium text-white placeholder-zinc-500 outline-none rounded-2xl"
+                style={{
+                  height: '60px',
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                }}
+              />
+              <button
+                onClick={handleTrack}
+                disabled={loading}
+                className="px-8 font-black text-sm rounded-2xl transition-all shrink-0"
+                style={{
+                  height: '60px',
+                  background: loading ? '#888' : ACCENT,
+                  color: '#101214',
+                }}
+              >
+                {loading ? 'Searching...' : 'Track Order'}
+              </button>
+            </div>
+            <p className="text-zinc-600 text-xs mt-3 text-left">
+              Your order ID was sent in your confirmation email and is shown on your order success page.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* SHOP BY BRAND */}
-      <div id="shop-by-brand" className="px-16 py-10 bg-gray-50 mt-8 scroll-mt-40">
-        <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-6">Shop by brand</p>
-        <div className="grid grid-cols-6 gap-4">
-          {brandLogos.map(brand => {
-            // "OSN" is just a logo alias — the real brand value stored on products is "One Science"
-            const brandParam = brand.name === 'OSN' ? 'One Science' : brand.name
-            return (
-              <Link
-                key={brand.name}
-                href={`/products?brand=${encodeURIComponent(brandParam)}`}
-                className="bg-white border border-gray-100 rounded-2xl h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#C6FF1E] hover:shadow-sm transition-all px-3 group"
-              >
-                {brand.image ? (
-                  <img
-                    src={brand.image}
-                    alt={brand.name}
-                    className="max-h-10 max-w-full object-contain"
+      <div className="max-w-3xl mx-auto px-6 -mt-6 pb-16">
+
+        {/* NOT FOUND */}
+        {searched && notFound && (
+          <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100 mb-6">
+            <span className="text-6xl mb-4 block">📦</span>
+            <p className="text-lg font-bold text-[#161616] mb-2">Order not found</p>
+            <p className="text-sm text-gray-400 mb-6">
+              We couldn't find an order with this ID. Please check and try again.
+            </p>
+            <a
+              href="https://wa.me/919999999999"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block font-bold px-6 py-3 rounded-2xl text-sm transition-all"
+              style={{ background: ACCENT, color: '#101214' }}
+            >
+              Contact Support
+            </a>
+          </div>
+        )}
+
+        {/* ORDER FOUND */}
+        {order && (
+          <div className="flex flex-col gap-5 mt-2">
+
+            {/* Order Summary Card */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100"
+              style={{ boxShadow: '0 15px 40px rgba(0,0,0,0.06)' }}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="font-black text-[#161616] text-base">Order Summary</h2>
+                <span className="text-xs font-black px-3 py-1.5 rounded-full capitalize"
+                  style={{
+                    background: order.status === 'delivered' ? '#DCFCE7' : order.status === 'cancelled' ? '#FEE2E2' : '#FEF9C3',
+                    color: order.status === 'delivered' ? '#166534' : order.status === 'cancelled' ? '#991B1B' : '#854D0E',
+                  }}
+                >
+                  {order.status}
+                </span>
+              </div>
+
+              {/* Items */}
+              <div className="flex flex-col gap-3 mb-5">
+                {(order.items || []).map((item, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-14 h-14 object-contain rounded-2xl shrink-0"
+                      style={{ background: '#F7F8FA' }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#161616] leading-snug line-clamp-2">{item.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Qty: {item.quantity}</p>
+                    </div>
+                    <p className="text-sm font-black text-[#161616] shrink-0">
+                      ₹{(item.price * item.quantity).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-gray-100 pt-4 grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Order ID</p>
+                  <p className="text-xs font-black text-[#161616]">USS-{order.id.substring(0, 8).toUpperCase()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Order Date</p>
+                  <p className="text-xs font-black text-[#161616]">
+                    {order.created_at
+                      ? new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                      : 'Recent'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Total Amount</p>
+                  <p className="text-xs font-black text-[#161616]">₹{order.total?.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Delivery Timeline */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100"
+              style={{ boxShadow: '0 15px 40px rgba(0,0,0,0.06)' }}
+            >
+              <h2 className="font-black text-[#161616] text-base mb-6">Delivery Timeline</h2>
+
+              {order.status === 'cancelled' ? (
+                <div className="text-center py-4">
+                  <span className="text-3xl">❌</span>
+                  <p className="text-sm font-bold text-red-500 mt-2">This order was cancelled</p>
+                </div>
+              ) : (
+                <div className="relative">
+                  {/* Progress line */}
+                  <div className="absolute top-5 left-5 right-5 h-0.5" style={{ background: '#E5E7EB' }} />
+                  <div
+                    className="absolute top-5 left-5 h-0.5 transition-all"
+                    style={{
+                      background: ACCENT,
+                      width: currentStep > 0 ? `${(currentStep / (statusSteps.length - 1)) * 100}%` : '0%',
+                    }}
                   />
-                ) : (
-                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-sm text-[#1A1A1A]">
-                    {brand.name[0]}
+
+                  <div className="relative flex justify-between">
+                    {statusSteps.map((step, i) => {
+                      const completed = i <= currentStep
+                      const active = i === currentStep
+                      return (
+                        <div key={step.key} className="flex flex-col items-center gap-2 flex-1">
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center text-base z-10 transition-all"
+                            style={{
+                              background: completed ? ACCENT : '#E5E7EB',
+                              boxShadow: active ? `0 0 0 4px rgba(183,255,30,0.2)` : 'none',
+                            }}
+                          >
+                            {completed ? '✓' : step.icon}
+                          </div>
+                          <p className="text-xs font-bold text-center"
+                            style={{ color: completed ? '#161616' : '#9CA3AF' }}
+                          >
+                            {step.label}
+                          </p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Shipment Details */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100"
+              style={{ boxShadow: '0 15px 40px rgba(0,0,0,0.06)' }}
+            >
+              <h2 className="font-black text-[#161616] text-base mb-5">Shipment Details</h2>
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Delivery Address</p>
+                  <p className="text-sm font-bold text-[#161616] leading-relaxed">
+                    {order.address}, {order.city},<br />
+                    {order.state} - {order.pincode}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Contact</p>
+                  <p className="text-sm font-bold text-[#161616]">{order.full_name}</p>
+                  <p className="text-sm text-gray-500">{order.phone}</p>
+                </div>
+                {order.razorpay_payment_id && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-400 mb-1">Payment ID</p>
+                    <p className="text-sm font-bold text-[#161616] font-mono">{order.razorpay_payment_id}</p>
                   </div>
                 )}
-                <span className="text-xs font-medium text-gray-500 text-center leading-tight group-hover:text-[#1A1A1A] transition-colors">
-                  {brand.name}
-                </span>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* DEAL OF THE DAY */}
-      <div className="mx-16 my-10 bg-[#1A1A1A] rounded-2xl p-8 flex items-center justify-between">
-        <div className="flex flex-col gap-3">
-          <span className="text-[#C6FF1E] text-xs font-bold tracking-[0.15em] uppercase">Deal of the day</span>
-          <p className="text-white text-2xl font-bold">Avvatar Whey Protein 2kg</p>
-          <div className="flex items-baseline gap-3">
-            <span className="text-white text-3xl font-bold">₹6,199</span>
-            <span className="text-gray-500 line-through text-lg">₹8,649</span>
-            <span className="bg-[#C6FF1E] text-[#1A1A1A] text-xs font-bold px-2.5 py-1 rounded-full">28% OFF</span>
-          </div>
-          <div className="flex gap-3 mt-1">
-            {[['06', 'Hours'], ['42', 'Minutes'], ['18', 'Seconds']].map(([val, label]) => (
-              <div key={label} className="bg-white/10 rounded-xl px-4 py-2 text-center">
-                <p className="text-white text-xl font-bold">{val}</p>
-                <p className="text-gray-500 text-xs uppercase tracking-wider">{label}</p>
               </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* HELP SECTION */}
+        <div className="mt-6 rounded-3xl p-6" style={{ background: '#F8F6F1' }}>
+          <p className="font-black text-[#161616] text-base mb-1">Need help with your order?</p>
+          <p className="text-sm text-gray-500 mb-5">Our support team is here to assist you.</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { icon: '💬', label: 'WhatsApp Support', sub: 'Quick chat with our team', href: 'https://wa.me/919999999999' },
+              { icon: '📧', label: 'Email Support', sub: 'support@ussupplements.in', href: 'mailto:support@ussupplements.in' },
+              { icon: '📞', label: 'Call Us', sub: '+91 12345 67890', href: 'tel:+911234567890' },
+            ].map(item => (
+              <a
+                key={item.label}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white rounded-2xl p-4 flex flex-col gap-1 hover:shadow-sm transition-all border border-transparent hover:border-gray-200"
+              >
+                <span className="text-2xl">{item.icon}</span>
+                <p className="text-xs font-black text-[#161616]">{item.label}</p>
+                <p className="text-[10px] text-gray-400">{item.sub}</p>
+              </a>
             ))}
           </div>
         </div>
-        <div className="flex flex-col items-center gap-4">
-          <img
-            src="https://ussupplements.in/wp-content/uploads/2025/07/IMG_2951-300x300.webp"
-            alt="Avvatar Whey Protein 2kg"
-            className="w-40 h-40 object-contain rounded-2xl"
-          />
-          <button className="bg-[#C6FF1E] text-[#1A1A1A] font-bold px-8 py-3 rounded-xl text-sm hover:brightness-110 transition-all">
-            Grab the deal
-          </button>
-        </div>
-      </div>
 
-      {/* OFFER BANNERS */}
-      <div className="px-16 grid grid-cols-2 gap-5">
-        <div className="bg-[#1A1A1A] rounded-2xl p-8 flex items-center justify-between">
-          <div>
-            <p className="text-[#C6FF1E] text-xs font-bold tracking-widest uppercase mb-2">New users</p>
-            <p className="text-white text-xl font-bold leading-snug">Get ₹200 off<br/>your first order</p>
-            <button className="mt-4 bg-[#C6FF1E] text-[#1A1A1A] font-bold px-5 py-2.5 rounded-xl text-sm">
-              Use code: NEW200
-            </button>
-          </div>
-          <span className="text-6xl">🎁</span>
-        </div>
-        <div className="bg-gray-100 rounded-2xl p-8 flex items-center justify-between">
-          <div>
-            <p className="text-gray-500 text-xs font-bold tracking-widest uppercase mb-2">Limited time</p>
-            <p className="text-[#1A1A1A] text-xl font-bold leading-snug">Buy 2 get 1 free<br/>on all creatine</p>
-            <button className="mt-4 bg-[#1A1A1A] text-[#C6FF1E] font-bold px-5 py-2.5 rounded-xl text-sm">
-              Shop creatine →
-            </button>
-          </div>
-          <span className="text-6xl">⚡</span>
-        </div>
       </div>
-
-    </main>
+    </div>
   )
 }
