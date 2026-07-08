@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
+import { MessageCircle, ArrowRight, Mail, Phone } from 'lucide-react'
 
 const ACCENT = '#B7FF1E'
 
