@@ -65,7 +65,7 @@ function Hero() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent(prev => (prev + 1) % banners.length)
-    }, 5000)
+    }, 10000)
     return () => clearInterval(timer)
   }, [])
 
