@@ -1,5 +1,6 @@
 'use client'
 import { useState, use, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { useCart } from '../../../context/CartContext'
@@ -31,8 +32,10 @@ const stackCategories = ['Pre-Workout', 'Creatine', 'BCAA', 'Vitamins']
 export default function ProductDetailPage({ params }) {
   const { addToCart } = useCart()
   const { id } = use(params)
+  const router = useRouter()
 
   const [product, setProduct] = useState(null)
+  const [variantSiblings, setVariantSiblings] = useState([])
   const [relatedProducts, setRelatedProducts] = useState([])
   const [bundleSlots, setBundleSlots] = useState([])
   const [stackItems, setStackItems] = useState([])
@@ -60,6 +63,18 @@ export default function ProductDetailPage({ params }) {
       if (!active) return
       setProduct(prod)
       if (!prod) { setLoading(false); return }
+
+      // Variant siblings (flavour/weight switcher) — only products with a
+      // group_id set (currently just Avvatar) will have any siblings here.
+      if (prod.group_id) {
+        const { data: siblings } = await supabase
+          .from('products')
+          .select('id, weight, variant_label, price, in_stock')
+          .eq('group_id', prod.group_id)
+        setVariantSiblings(siblings || [])
+      } else {
+        setVariantSiblings([])
+      }
 
       // You May Also Like — same category
       const { data: related } = await supabase
@@ -159,6 +174,27 @@ export default function ProductDetailPage({ params }) {
     ? Math.round((product.mrp - product.price) / product.mrp * 100)
     : 0
 
+  // Unique weights across all siblings (including this product itself)
+  const allVariants = [
+    { id: product.id, weight: product.weight, variant_label: product.variant_label, price: product.price, in_stock: product.in_stock },
+    ...variantSiblings.filter(s => s.id !== product.id),
+  ]
+  const availableWeights = [...new Set(allVariants.map(v => v.weight).filter(Boolean))]
+  // Flavours available at the CURRENTLY selected weight only
+  const flavoursAtCurrentWeight = allVariants.filter(v => v.weight === product.weight)
+
+  const goToVariant = (targetId) => {
+    if (targetId && targetId !== product.id) router.push(`/products/${targetId}`)
+  }
+
+  // When switching weight, jump to the sibling with the same flavour if it
+  // exists at that weight, otherwise just the first one available there.
+  const goToWeight = (targetWeight) => {
+    const sameFlavour = allVariants.find(v => v.weight === targetWeight && v.variant_label === product.variant_label)
+    const fallback = allVariants.find(v => v.weight === targetWeight)
+    goToVariant((sameFlavour || fallback)?.id)
+  }
+
   const cycleSlot = (slotIdx, direction) => {
     setBundleSlots(prev => prev.map((s, i) => {
       if (i !== slotIdx) return s
@@ -204,11 +240,31 @@ export default function ProductDetailPage({ params }) {
             className="bg-white flex items-center justify-center"
             style={{ borderRadius: '32px', padding: '40px', minHeight: '440px' }}
           >
-            <img
-              src={product.image}
-              alt={product.name}
-              className="max-h-[380px] w-full object-contain"
-            />
+            {product.images && product.images.length > 0 ? (
+              <Swiper
+                modules={[Navigation]}
+                navigation
+                spaceBetween={10}
+                slidesPerView={1}
+                className="w-full h-[380px] product-gallery-swiper"
+              >
+                {product.images.map((url, i) => (
+                  <SwiperSlide key={i} className="flex items-center justify-center">
+                    <img
+                      src={url}
+                      alt={`${product.name} - view ${i + 1}`}
+                      className="max-h-[380px] w-full object-contain"
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            ) : (
+              <img
+                src={product.image}
+                alt={product.name}
+                className="max-h-[380px] w-full object-contain"
+              />
+            )}
           </div>
 
           {!product.in_stock && (
@@ -256,6 +312,57 @@ export default function ProductDetailPage({ params }) {
           <span className="inline-block bg-gray-100 text-gray-500 text-xs font-medium px-3 py-1 rounded-full w-fit">
             {product.category}
           </span>
+
+          {/* Weight selector — only shows if this product has variant siblings */}
+          {availableWeights.length > 1 && (
+            <div>
+              <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wide mb-2">
+                Weight: <span className="text-[#161616]">{product.weight}</span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {availableWeights.map(w => (
+                  <button
+                    key={w}
+                    onClick={() => goToWeight(w)}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                      w === product.weight
+                        ? 'bg-[#101214] text-[#B7FF1E] border-[#101214]'
+                        : 'bg-white text-[#161616] border-[#E5E7EB] hover:border-[#B7FF1E]'
+                    }`}
+                  >
+                    {w}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Flavour selector — only shows flavours available at the current weight */}
+          {flavoursAtCurrentWeight.length > 1 && (
+            <div>
+              <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wide mb-2">
+                Flavour: <span className="text-[#161616]">{product.variant_label}</span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {flavoursAtCurrentWeight.map(v => (
+                  <button
+                    key={v.id}
+                    onClick={() => goToVariant(v.id)}
+                    disabled={!v.in_stock}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                      v.id === product.id
+                        ? 'bg-[#101214] text-[#B7FF1E] border-[#101214]'
+                        : v.in_stock
+                        ? 'bg-white text-[#161616] border-[#E5E7EB] hover:border-[#B7FF1E]'
+                        : 'bg-gray-50 text-gray-300 border-[#E5E7EB] cursor-not-allowed line-through'
+                    }`}
+                  >
+                    {v.variant_label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-baseline gap-4 flex-wrap">
             <span style={{ fontSize: '42px', fontWeight: 800, color: '#161616' }}>
@@ -419,12 +526,23 @@ export default function ProductDetailPage({ params }) {
         </div>
       </div>
 
-      {/* PRODUCT DETAILS (real fields only — swap in real descriptions/ingredients once added to the data) */}
+      {/* PRODUCT DETAILS */}
       <div className="py-14 bg-white">
         <div className="px-6 lg:px-16 max-w-5xl mx-auto">
           <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }} className="mb-8">
             Product Details
           </h2>
+
+          {product.description && (
+            <div className="mb-10 flex flex-col gap-3 max-w-3xl">
+              {product.description.split('\n').filter(Boolean).map((para, i) => (
+                <p key={i} className="text-base leading-relaxed" style={{ color: '#374151' }}>
+                  {para}
+                </p>
+              ))}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
               { label: 'Brand', value: product.brand },
