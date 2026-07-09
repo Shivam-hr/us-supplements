@@ -5,8 +5,9 @@ import Link from 'next/link'
 import { Swiper, SwiperSlide } from "swiper/react";
 import { ShieldCheckIcon as ShieldSolid, TruckIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { ArrowPathIcon, TagIcon, StarIcon, ShieldCheckIcon as ShieldOutline } from '@heroicons/react/24/outline'
-import { ShieldCheck, ArrowRight, UserCheck as UserCheckIcon, PackageCheck as PackageCheckIcon, Star, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Autoplay } from "swiper/modules";
+import ProductCard from '../Components/ProductCard'
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -68,92 +69,48 @@ function Hero() {
     return () => clearInterval(timer)
   }, [])
 
-  const features = [
-    { icon: ShieldSolid, title: '100% Authentic', sub: 'Original Products' },
-    { icon: UserCheckIcon, title: 'Authorized Brands', sub: 'Direct Distributors' },
-    { icon: PackageCheckIcon, title: 'Secure Packaging', sub: 'Safe & Sealed' },
-    { icon: TruckIcon, title: 'Fast Delivery', sub: 'Across India' },
-  ]
-
   return (
-    <div className="relative overflow-hidden bg-[#101214]">
-      <div className="absolute inset-y-0 right-[10px] w-[46%] hidden md:block">
-        {banners.map((banner, i) => (
+    <div className="relative w-full overflow-hidden" style={{ height: '480px' }}>
+      {banners.map((banner, i) => (
+        <div
+          key={banner.id}
+          className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'}`}
+        >
           <img
-            key={banner.id}
             src={banner.image}
             alt={banner.alt}
-            className={`absolute inset-0 w-full h-full object-cover object-right transition-opacity duration-1000 ${i === current ? 'opacity-100' : 'opacity-0'}`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ))}
+
+      {/* Dot indicators */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        {banners.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            aria-label={`Show banner ${i + 1}`}
+            className={`h-1.5 rounded-full transition-all ${i === current ? 'w-6 bg-[#B7FF1E]' : 'w-4 bg-white/50'}`}
           />
         ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#101214] via-[#101214]/35 to-transparent w-1/2" />
-
-        {/* Slider dot indicators */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-          {banners.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              aria-label={`Show banner ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all ${i === current ? 'w-6 bg-[#B7FF1E]' : 'w-1.5 bg-white/40'}`}
-            />
-          ))}
-        </div>
-
-        <div className="absolute top-10 right-10 w-32 h-32 z-20">
-          <div className="absolute inset-0 rounded-full border border-dashed border-[#B7FF1E]/50 animate-[spin_18s_linear_infinite]" />
-          <div className="absolute inset-3 rounded-full bg-[#101214] border border-[#B7FF1E]/60 flex flex-col items-center justify-center gap-1">
-            <ShieldCheck className="w-5 h-5 text-[#B7FF1E]" strokeWidth={2} />
-            <span className="text-white text-[10px] font-bold uppercase tracking-wide">Authentic</span>
-            <span className="text-[#B7FF1E] text-[9px] font-bold uppercase">100% Guaranteed</span>
-          </div>
-        </div>
       </div>
 
-      <div className="relative z-10 px-16 py-20">
-        <div className="max-w-xl">
-          <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#B7FF1E] mb-5">
-            Trust is our promise
-          </span>
-
-          <h1 className="text-5xl font-black leading-[1.1] mb-5">
-            <span className="block text-white">Fuel Your Goals</span>
-            <span className="block text-[#B7FF1E]">The Right Way.</span>
-          </h1>
-
-          <p className="text-gray-400 text-base leading-relaxed mb-8 max-w-sm">
-            100% authentic supplements from top brands. Verified. Trusted. Delivered.
-          </p>
-
-          <div className="flex items-start gap-6 mb-9">
-            {features.map(({ icon: Icon, title, sub }) => (
-              <div key={title} className="flex flex-col items-start gap-1.5 max-w-[110px]">
-                <Icon className="w-5 h-5 text-[#B7FF1E]" strokeWidth={1.75} />
-                <p className="text-white text-xs font-bold leading-snug">{title}</p>
-                <p className="text-gray-500 text-[11px] leading-snug">{sub}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link
-              href="/products"
-              className="inline-flex items-center gap-2 bg-[#B7FF1E] hover:bg-[#C8FF4A] text-[#101214] font-bold px-7 py-3.5 rounded-xl text-sm transition-colors"
-            >
-              Shop Now
-              <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-            </Link>
-            <Link
-              href="/authenticity"
-              className="inline-flex items-center gap-2 text-white font-bold text-sm hover:text-[#B7FF1E] transition-colors px-2"
-            >
-              <ShieldCheck className="w-4 h-4" strokeWidth={2} />
-              Verify Authenticity
-              <ArrowRight className="w-4 h-4" strokeWidth={2} />
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* Arrow buttons */}
+      <button
+        onClick={() => setCurrent(prev => (prev - 1 + banners.length) % banners.length)}
+        aria-label="Previous banner"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all"
+      >
+        <ChevronLeft className="w-5 h-5" strokeWidth={2} />
+      </button>
+      <button
+        onClick={() => setCurrent(prev => (prev + 1) % banners.length)}
+        aria-label="Next banner"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all"
+      >
+        <ChevronRight className="w-5 h-5" strokeWidth={2} />
+      </button>
     </div>
   )
 }
@@ -171,8 +128,8 @@ function ShopByCategory() {
 
   return (
     <div className="py-20 bg-[#F7F8FA]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-12">
+      <div className="max-w-[1600px] mx-auto px-10 lg:px-16">
+        <div className="text-center mb-14">
           <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#4d7a00] mb-3">
             Shop by category
           </span>
@@ -184,15 +141,15 @@ function ShopByCategory() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-6">
           {categories.map(cat => (
             <Link
               key={cat.name}
               href={`/products?search=${encodeURIComponent(cat.name)}`}
-              className="group bg-white border border-[#E5E7EB] rounded-[24px] p-3 flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-2 hover:border-[#B7FF1E] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)]"
+              className="group bg-white border border-[#E5E7EB] rounded-[24px] p-5 flex flex-col items-center gap-4 transition-all duration-300 hover:-translate-y-2 hover:border-[#B7FF1E] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)]"
             >
               <div
-                className="w-full aspect-square rounded-2xl flex items-center justify-center p-1.5"
+                className="w-full aspect-square rounded-2xl flex items-center justify-center p-2"
                 style={{ background: 'linear-gradient(180deg, #FFFFFF, #F8F6F1)' }}
               >
                 <img
@@ -201,7 +158,7 @@ function ShopByCategory() {
                   className="w-full h-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-110"
                 />
               </div>
-              <span className="text-[15px] font-semibold text-[#161616] text-center leading-tight">
+              <span className="text-[16px] font-semibold text-[#161616] text-center leading-tight">
                 {cat.name}
               </span>
             </Link>
@@ -219,71 +176,6 @@ function ShopByCategory() {
         </div>
       </div>
     </div>
-  )
-}
-
-function ProductCard({ product, showBrand }) {
-  const discount = Math.round((product.mrp - product.price) / product.mrp * 100)
-  return (
-    <Link href={`/products/${product.id}`}>
-      <div className="bg-white rounded-[24px] p-4 cursor-pointer group transition-all duration-300 hover:-translate-y-2.5"
-        style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}
-        onMouseEnter={e => e.currentTarget.style.boxShadow = '0 25px 50px rgba(0,0,0,0.12)'}
-        onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.06)'}
-      >
-        <div
-          className="h-52 w-full rounded-2xl mb-4 flex items-center justify-center p-3"
-          style={{ background: 'linear-gradient(180deg, #FFFFFF, #F8F6F1)' }}
-        >
-          <img
-            src={product.image}
-            alt={product.name}
-            className="h-full w-full object-contain group-hover:scale-105 transition-transform"
-          />
-        </div>
-
-        {showBrand && (
-          <p className="text-xs text-[#6B7280] mb-1">{product.brand}</p>
-        )}
-
-        {product.badge && (
-          <span className={`inline-block text-xs px-2.5 py-0.5 rounded-full font-semibold mb-2 ${product.badge === 'New' ? 'bg-[#101214] text-[#B7FF1E]' : 'bg-[#B7FF1E] text-[#101214]'}`}>
-            {product.badge}
-          </span>
-        )}
-
-        <p className="text-sm font-semibold text-[#161616] mb-2 leading-snug">{product.name}</p>
-
-        {product.rating && (
-          <div className="flex items-center gap-1 mb-2">
-            <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
-            <span className="text-xs font-semibold text-[#161616]">{product.rating}</span>
-            {product.reviews && (
-              <span className="text-xs text-[#6B7280]">({product.reviews})</span>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-baseline gap-2 mb-4">
-          <span className="text-base font-bold text-[#161616]">₹{product.price.toLocaleString()}</span>
-          {product.mrp > product.price && (
-            <>
-              <span className="text-xs text-[#9CA3AF] line-through">₹{product.mrp.toLocaleString()}</span>
-              <span className="text-xs text-green-600 font-semibold">{discount}% off</span>
-            </>
-          )}
-        </div>
-
-        <button
-          onClick={e => e.preventDefault()}
-          className="w-full bg-[#B7FF1E] hover:bg-[#C8FF4A] text-[#101214] text-sm font-semibold rounded-[14px] transition-colors flex items-center justify-center gap-2"
-          style={{ height: '48px' }}
-        >
-          <ShoppingCart className="w-4 h-4" strokeWidth={2} />
-          Add to Cart
-        </button>
-      </div>
-    </Link>
   )
 }
 
@@ -357,7 +249,7 @@ export default function Home() {
               Top Picks, Trusted by Thousands
             </h2>
             <p className="text-[#6B7280] text-sm">
-              Our customers' favorite supplements.
+              Our customers&apos; favorite supplements.
             </p>
           </div>
 
