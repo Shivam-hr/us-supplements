@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { useCart } from '../../../context/CartContext'
 import ProductCard from '../../../Components/ProductCard'
+import LoginRequiredModal from '../../../Components/LoginRequiredModal'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
 import 'swiper/css'
@@ -33,6 +34,27 @@ export default function ProductDetailPage({ params }) {
   const { addToCart } = useCart()
   const { id } = use(params)
   const router = useRouter()
+  const [showLoginModal, setShowLoginModal] = useState(false)
+
+  const requireLogin = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setShowLoginModal(true)
+      return false
+    }
+    return true
+  }
+
+  const handleAddToCart = async (prod, qty) => {
+    if (!(await requireLogin())) return
+    addToCart(prod, qty)
+  }
+
+  const handleBuyNow = async (prod, qty) => {
+    if (!(await requireLogin())) return
+    addToCart(prod, qty)
+    router.push('/checkout')
+  }
 
   const [product, setProduct] = useState(null)
   const [variantSiblings, setVariantSiblings] = useState([])
@@ -208,7 +230,8 @@ export default function ProductDetailPage({ params }) {
   const bundlePrice = Math.round(bundleRawTotal * 0.85)
   const bundleSavings = bundleRawTotal - bundlePrice
 
-  const addBundleToCart = () => {
+  const addBundleToCart = async () => {
+    if (!(await requireLogin())) return
     addToCart(product, 1)
     bundleItems.forEach(p => addToCart(p, 1))
   }
@@ -457,11 +480,11 @@ export default function ProductDetailPage({ params }) {
           {/* CTA buttons — hidden on mobile, sticky bar takes over there */}
           <div className="hidden lg:flex gap-3">
             <button
-              onClick={() => addToCart(product, quantity)}
+              onClick={() => handleAddToCart(product, quantity)}
               disabled={!product.in_stock}
               className={`flex-1 font-bold text-base transition-all flex items-center justify-center gap-2 ${
                 product.in_stock
-                  ? 'bg-[#B7FF1E] text-[#101214] hover:bg-[#C8FF4A]'
+                  ? 'bg-[#B7FF1E] text-[#101214] hover:bg-[#C8FF4A] cursor-pointer'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
               style={{ height: '58px', borderRadius: '16px' }}
@@ -470,10 +493,11 @@ export default function ProductDetailPage({ params }) {
               Add to Cart
             </button>
             <button
+              onClick={() => handleBuyNow(product, quantity)}
               disabled={!product.in_stock}
               className={`flex-1 font-bold text-base transition-all ${
                 product.in_stock
-                  ? 'bg-[#101214] text-white hover:bg-[#17191C]'
+                  ? 'bg-[#101214] text-white hover:bg-[#17191C] cursor-pointer'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
               style={{ height: '58px', borderRadius: '16px' }}
@@ -490,10 +514,10 @@ export default function ProductDetailPage({ params }) {
         style={{ backgroundColor: '#17191C' }}
       >
         <button
-          onClick={() => addToCart(product, quantity)}
+          onClick={() => handleAddToCart(product, quantity)}
           disabled={!product.in_stock}
           className={`flex-1 font-bold text-sm flex items-center justify-center gap-2 ${
-            product.in_stock ? 'bg-[#B7FF1E] text-[#101214]' : 'bg-gray-600 text-gray-300'
+            product.in_stock ? 'bg-[#B7FF1E] text-[#101214] cursor-pointer' : 'bg-gray-600 text-gray-300 cursor-not-allowed'
           }`}
           style={{ height: '52px', borderRadius: '16px' }}
         >
@@ -501,8 +525,9 @@ export default function ProductDetailPage({ params }) {
           Add to Cart
         </button>
         <button
+          onClick={() => handleBuyNow(product, quantity)}
           disabled={!product.in_stock}
-          className={`flex-1 font-bold text-sm ${product.in_stock ? 'bg-white text-[#101214]' : 'bg-gray-600 text-gray-300'}`}
+          className={`flex-1 font-bold text-sm ${product.in_stock ? 'bg-white text-[#101214] cursor-pointer' : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
           style={{ height: '52px', borderRadius: '16px' }}
         >
           Buy Now
@@ -599,7 +624,7 @@ export default function ProductDetailPage({ params }) {
                 </div>
                 <button
                   onClick={addBundleToCart}
-                  className="mt-2 bg-[#101214] text-white font-bold text-sm py-3.5 rounded-2xl hover:bg-[#17191C] transition-colors"
+                  className="mt-2 bg-[#101214] text-white font-bold text-sm py-3.5 rounded-2xl hover:bg-[#17191C] transition-colors cursor-pointer"
                 >
                   Add Bundle to Cart
                 </button>
@@ -682,6 +707,8 @@ export default function ProductDetailPage({ params }) {
           </div>
         </div>
       )}
+
+      <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
 
     </div>
   )
