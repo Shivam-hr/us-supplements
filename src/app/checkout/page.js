@@ -127,6 +127,25 @@ const handlePlaceOrder = async () => {
       return
     }
 
+    // Notify the owner on WhatsApp — wrapped separately so that if this fails
+    // (Twilio down, misconfigured, etc.) it never blocks or undoes the order,
+    // which is already safely saved above by this point.
+    try {
+      await fetch('/api/notify-owner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order.id,
+          fullName: form.fullName,
+          phone: form.phone,
+          total: finalTotal,
+          items: cartItems,
+        }),
+      })
+    } catch (notifyErr) {
+      console.error('Owner notification request failed:', notifyErr.message)
+    }
+
     clearCart()
     router.push(`/order-success?id=${order.id}`)
   } catch (err) {
