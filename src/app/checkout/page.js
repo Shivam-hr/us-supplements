@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCart } from '../../context/CartContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -9,6 +9,23 @@ import { supabase } from '../../lib/supabase'
 export default function CheckoutPage() {
   const { cartItems, totalPrice, totalItems, clearCart } = useCart()
   const router = useRouter()
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  // Safety net: cart items live in localStorage and persist even after logout,
+  // so someone could reach /checkout directly without ever hitting an
+  // Add to Cart button. This closes that gap at the page level too.
+  useEffect(() => {
+    let active = true
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!active) return
+      if (!user) {
+        router.push('/login?redirect=/checkout')
+        return
+      }
+      setCheckingAuth(false)
+    })
+    return () => { active = false }
+  }, [router])
 
   const [form, setForm] = useState({
     fullName: '',
@@ -163,6 +180,14 @@ const handlePlaceOrder = async () => {
   rzp.open()
   setLoading(false)
 }
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#B7FF1E] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -423,7 +448,7 @@ const handlePlaceOrder = async () => {
               className={`w-full py-4 rounded-2xl font-bold text-sm transition-all ${
                 loading
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-[#C6FF1E] text-[#1A1A1A] hover:brightness-110'
+                  : 'bg-[#C6FF1E] text-[#1A1A1A] hover:brightness-110 cursor-pointer'
               }`}
             >
               {loading ? 'Placing order...' : `Place order • ₹${finalTotal.toLocaleString()}`}
