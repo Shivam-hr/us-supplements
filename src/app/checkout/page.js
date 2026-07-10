@@ -138,6 +138,7 @@ const handlePlaceOrder = async () => {
           orderId: order.id,
           fullName: form.fullName,
           phone: form.phone,
+          address: `${form.address}, ${form.city}, ${form.state} - ${form.pincode}`,
           total: finalTotal,
           items: cartItems,
         }),

@@ -8,15 +8,22 @@ export async function POST(request) {
 
   if (!accountSid || !authToken || !fromNumber || !ownerNumber) {
     console.error('Twilio env vars missing — skipping WhatsApp notification')
-    // Don't fail the whole request just because notification isn't configured yet —
-    // the order itself already saved successfully before this route was called.
     return Response.json({ skipped: true, reason: 'Twilio not configured' })
   }
 
   try {
-    const { orderId, fullName, phone, total, items } = await request.json()
+    // Defaults added for every field — if checkout ever forgets to send one,
+    // this will never crash with "X is not defined" again.
+    const {
+      orderId = 'N/A',
+      fullName = 'N/A',
+      phone = 'N/A',
+      address = 'N/A',
+      total = 0,
+      items = [],
+    } = await request.json()
 
-    const itemsList = (items || [])
+    const itemsList = items
       .map(item => `- ${item.name} x${item.quantity}`)
       .join('\n')
 
@@ -25,9 +32,9 @@ export async function POST(request) {
       `Order ID: ${orderId}\n` +
       `Customer: ${fullName}\n` +
       `Phone: ${phone}\n` +
+      `Address: ${address}\n` +
       `Total: ₹${total}\n\n` +
-      `Items:\n${itemsList}` +
-      `Address: ${address}\n` 
+      `Items:\n${itemsList}`
 
     const client = twilio(accountSid, authToken)
 
@@ -39,8 +46,6 @@ export async function POST(request) {
 
     return Response.json({ sent: true })
   } catch (err) {
-    // Log it, but never throw — a failed WhatsApp ping should never undo
-    // or block an already-successful order.
     console.error('WhatsApp notification failed:', err.message)
     return Response.json({ sent: false, error: err.message }, { status: 200 })
   }
