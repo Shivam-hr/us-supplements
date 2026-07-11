@@ -1,4 +1,5 @@
 import { Geist } from 'next/font/google'
+import Link from 'next/link'
 import './globals.css'
 import Navbar from '../Components/Navbar'
 import { CartProvider } from '../context/CartContext'
@@ -34,9 +35,9 @@ export default function RootLayout({ children }) {
               <div>
                 <p className="text-white font-semibold mb-4">Support</p>
                 <div className="flex flex-col gap-3">
-                  <span className="hover:text-white cursor-pointer transition-colors">Track order</span>
-                  <span className="hover:text-white cursor-pointer transition-colors">Returns</span>
-                  <span className="hover:text-white cursor-pointer transition-colors">FAQ</span>
+                  <Link href="/track-order" className="hover:text-white transition-colors">Track order</Link>
+                  <Link href="/refund-policy" className="hover:text-white transition-colors">Returns</Link>
+                  <Link href="/support" className="hover:text-white transition-colors">FAQ</Link>
                 </div>
               </div>
               <div>
@@ -56,8 +57,16 @@ export default function RootLayout({ children }) {
                 </div>
               </div>
             </div>
-            <div className="border-t border-gray-800 mt-10 pt-6 text-xs text-center">
-              © 2026 US Supplements. All rights reserved.
+            <div className="border-t border-gray-800 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-center">
+              <span>© 2026 US Supplements. All rights reserved.</span>
+              <span className="hidden sm:inline text-gray-700">•</span>
+              <div className="flex items-center gap-3">
+                <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+                <span className="text-gray-700">•</span>
+                <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+                <span className="text-gray-700">•</span>
+                <Link href="/refund-policy" className="hover:text-white transition-colors">Refund Policy</Link>
+              </div>
             </div>
           </footer>
         </CartProvider>
