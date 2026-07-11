@@ -8,7 +8,6 @@ import { ArrowPathIcon, TagIcon, StarIcon, ShieldCheckIcon as ShieldOutline } fr
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Autoplay } from "swiper/modules";
 import ProductCard from '../Components/ProductCard'
-import HomeClient from './HomeClient'
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -59,16 +58,6 @@ const trustHighlights = [
   { icon: StarIcon, title: '4.8/5 Customer Rating', desc: 'Trusted by 50,000+ happy customers' },
   { icon: ShieldOutline, title: 'Brand Promise', desc: 'Genuine products. Always.' },
 ]
-
-export const metadata = {
-  title: 'US Supplements — 100% Authentic Whey Protein, Creatine & More | Free Delivery',
-  description: 'Shop genuine supplements from MuscleBlaze, Optimum Nutrition, Avvatar, and more — sourced directly from authorized distributors. Free delivery above ₹499. 100% authenticity guaranteed.',
-}
- 
-export default function Home() {
-  return <HomeClient />
-}
- 
 
 function Hero() {
   const [current, setCurrent] = useState(0)
@@ -191,7 +180,7 @@ function ShopByCategory() {
 }
 
 // 2. THIS IS THE ONLY DEFAULT EXPORT
-export default function Home() {
+export default function HomeClient() {
   const [featuredProducts, setFeaturedProducts] = useState([])
   const trendingSwiperRef = useRef(null)
 

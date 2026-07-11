@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useCart } from '../../context/CartContext'
 
 import { useSearchParams } from 'next/navigation'
-import HomeClient from './HomeClient'
+
 
 const categories = [
   'Whey Protein', 'Mass Gainer', 'Pre-Workout', 'Creatine',
@@ -20,15 +20,7 @@ const categories = [
   'mas gainer': 'mass gainer'
 }
 
-export const metadata = {
-  title: 'US Supplements — 100% Authentic Whey Protein, Creatine & More | Free Delivery',
-  description: 'Shop genuine supplements from MuscleBlaze, Optimum Nutrition, Avvatar, and more — sourced directly from authorized distributors. Free delivery above ₹499. 100% authenticity guaranteed.',
-}
- 
-export default function Home() {
-  return <HomeClient />
-}
- 
+
 
 function ProductCard({ product }) {
   const discount = product.mrp > product.price
@@ -323,7 +315,7 @@ const filtered = useMemo(() => {
     </div>
   )
 }
-export default function ProductsPage() {
+export default function ProductsListClient() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">

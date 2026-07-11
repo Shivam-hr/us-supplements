@@ -6,7 +6,6 @@ import {
   ChevronLeft, UserCheck, Link2, CheckCircle2, Plus, Minus, MessageCircle,
   Mail, HelpCircle,
 } from 'lucide-react'
-import AuthenticityClient from './AuthenticityClient'
 
 const brands = [
   {
@@ -190,7 +189,7 @@ function FaqAccordion() {
   )
 }
 
-export default function AuthenticityPage() {
+export default function AuthenticityClient() {
   return (
     <div className="min-h-screen bg-[#F7F8FA] pb-16">
 
@@ -392,13 +391,3 @@ export default function AuthenticityPage() {
     </div>
   )
 }
-
-export const metadata = {
-  title: 'Verify Product Authenticity | MuscleBlaze, Optimum Nutrition, Avvatar & More | US Supplements',
-  description: 'Verify your supplement is 100% genuine. Direct links to official brand authentication pages for MuscleBlaze, Optimum Nutrition, Avvatar, Dymatize, GNC, and more.',
-}
- 
-export default function AuthenticityPage() {
-  return <AuthenticityClient />
-}
- 
