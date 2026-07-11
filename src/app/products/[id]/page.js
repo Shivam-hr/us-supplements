@@ -1,13 +1,6 @@
 import { supabase } from '../../../lib/supabase'
 import ProductDetailClient from './ProductDetailClient'
 
-// This file is intentionally a Server Component (no 'use client') — Next.js
-// only allows generateMetadata() in Server Components, and this is what makes
-// each product page show its own real title/description in Google search
-// results instead of every product sharing the site-wide default. All the
-// actual interactive UI (cart, variant selector, gallery, etc.) still lives
-// in ProductDetailClient.js exactly as before — nothing about the page's
-// behavior changes, only where the file boundary sits.
 export async function generateMetadata({ params }) {
   const { id } = await params
 
