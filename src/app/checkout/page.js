@@ -39,6 +39,7 @@ export default function CheckoutPage() {
 
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('razorpay') // was previously untracked — this is the actual fix
 
   const deliveryCharge = totalPrice >= 499 ? 0 : 60
   const finalTotal = totalPrice + deliveryCharge
@@ -61,60 +62,21 @@ export default function CheckoutPage() {
     return newErrors
   }
 
-const loadRazorpay = () => {
-  return new Promise(resolve => {
-    const script = document.createElement('script')
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-    script.onload = () => resolve(true)
-    script.onerror = () => resolve(false)
-    document.body.appendChild(script)
-  })
-}
-
-const handlePlaceOrder = async () => {
-  const newErrors = validate()
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors)
-    return
-  }
-  setLoading(true)
-
-  // Load Razorpay script
-  const loaded = await loadRazorpay()
-  if (!loaded) {
-    alert('Razorpay failed to load. Check your internet connection.')
-    setLoading(false)
-    return
+  const loadRazorpay = () => {
+    return new Promise(resolve => {
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
   }
 
-  // Create order on your server
-  const { data: { user } } = await supabase.auth.getUser()
-
-  const res = await fetch('/api/create-order', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount: finalTotal }),
-  })
-  const { orderId } = await res.json()
-
-  // Open Razorpay checkout
-  const options = {
-    key: 'rzp_test_T9Ozh6lcYBMhrm',
-    amount: finalTotal * 100,
-    currency: 'INR',
-    name: 'US Supplements',
-    description: 'Premium supplements order',
-    order_id: orderId,
-    prefill: {
-      name: form.fullName,
-      email: form.email,
-      contact: form.phone,
-    },
-    theme: {
-      color: '#C6FF1E',
-    },
-   handler: async function(response) {
-  try {
+  // Shared by both COD and Razorpay flows — one place that saves the order,
+  // fires the WhatsApp owner ping, and sends the customer confirmation email.
+  // Each notification is independently wrapped so a failure in one (e.g. email
+  // service down) can never block the order or the other notification.
+  const saveOrder = async ({ status, razorpayPaymentId = null, razorpayOrderId = null }) => {
     const { data: { user } } = await supabase.auth.getUser()
 
     const { data: order, error } = await supabase
@@ -124,7 +86,7 @@ const handlePlaceOrder = async () => {
         items: cartItems,
         total: finalTotal,
         delivery_charge: deliveryCharge,
-        status: 'paid',
+        status,
         full_name: form.fullName,
         phone: form.phone,
         email: form.email,
@@ -132,21 +94,23 @@ const handlePlaceOrder = async () => {
         city: form.city,
         state: form.state,
         pincode: form.pincode,
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_order_id: response.razorpay_order_id,
+        razorpay_payment_id: razorpayPaymentId,
+        razorpay_order_id: razorpayOrderId,
       })
       .select()
       .single()
 
     if (error) {
       console.error('Order save error:', error.message)
-      alert('Payment done but order save failed. Contact support with payment ID: ' + response.razorpay_payment_id)
-      return
+      alert('Something went wrong saving your order. Please contact support.' +
+        (razorpayPaymentId ? ` Payment ID: ${razorpayPaymentId}` : ''))
+      setLoading(false)
+      return null
     }
 
-    // Notify the owner on WhatsApp — wrapped separately so that if this fails
-    // (Twilio down, misconfigured, etc.) it never blocks or undoes the order,
-    // which is already safely saved above by this point.
+    const fullAddress = `${form.address}, ${form.city}, ${form.state} - ${form.pincode}`
+
+    // WhatsApp ping to the owner
     try {
       await fetch('/api/notify-owner', {
         method: 'POST',
@@ -155,7 +119,7 @@ const handlePlaceOrder = async () => {
           orderId: order.id,
           fullName: form.fullName,
           phone: form.phone,
-          address: `${form.address}, ${form.city}, ${form.state} - ${form.pincode}`,
+          address: fullAddress,
           total: finalTotal,
           items: cartItems,
         }),
@@ -164,22 +128,100 @@ const handlePlaceOrder = async () => {
       console.error('Owner notification request failed:', notifyErr.message)
     }
 
-    clearCart()
-    router.push(`/order-success?id=${order.id}`)
-  } catch (err) {
-    console.error('Handler error:', err.message)
-  }
-}
+    // Confirmation email to the customer
+    try {
+      await fetch('/api/send-order-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order.id,
+          toEmail: form.email,
+          fullName: form.fullName,
+          address: fullAddress,
+          total: finalTotal,
+          paymentMethod: status === 'pending_cod' ? 'Cash on Delivery' : 'Paid online',
+          items: cartItems,
+        }),
+      })
+    } catch (emailErr) {
+      console.error('Order confirmation email request failed:', emailErr.message)
+    }
+
+    return order
   }
 
-  const rzp = new window.Razorpay(options)
-  rzp.on('payment.failed', function() {
-    alert('Payment failed. Please try again.')
+  const handlePlaceOrder = async () => {
+    const newErrors = validate()
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+    setLoading(true)
+
+    // ---- Cash on Delivery: no Razorpay at all, save order directly ----
+    if (paymentMethod === 'cod') {
+      const order = await saveOrder({ status: 'pending_cod' })
+      if (!order) return // saveOrder already alerted + reset loading on failure
+      clearCart()
+      router.push(`/order-success?id=${order.id}`)
+      return
+    }
+
+    // ---- Pay online: existing Razorpay flow ----
+    const loaded = await loadRazorpay()
+    if (!loaded) {
+      alert('Razorpay failed to load. Check your internet connection.')
+      setLoading(false)
+      return
+    }
+
+    const res = await fetch('/api/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: finalTotal }),
+    })
+    const { orderId } = await res.json()
+
+    const options = {
+      key: 'rzp_test_T9Ozh6lcYBMhrm',
+      amount: finalTotal * 100,
+      currency: 'INR',
+      name: 'US Supplements',
+      description: 'Premium supplements order',
+      order_id: orderId,
+      prefill: {
+        name: form.fullName,
+        email: form.email,
+        contact: form.phone,
+      },
+      theme: {
+        color: '#C6FF1E',
+      },
+      handler: async function (response) {
+        try {
+          const order = await saveOrder({
+            status: 'paid',
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpayOrderId: response.razorpay_order_id,
+          })
+          if (!order) return
+
+          clearCart()
+          router.push(`/order-success?id=${order.id}`)
+        } catch (err) {
+          console.error('Handler error:', err.message)
+        }
+      }
+    }
+
+    const rzp = new window.Razorpay(options)
+    rzp.on('payment.failed', function () {
+      alert('Payment failed. Please try again.')
+      setLoading(false)
+    })
+    rzp.open()
     setLoading(false)
-  })
-  rzp.open()
-  setLoading(false)
-}
+  }
 
   if (checkingAuth) {
     return (
@@ -368,7 +410,7 @@ const handlePlaceOrder = async () => {
             </div>
           </div>
 
-          {/* Payment method — placeholder */}
+          {/* Payment method — now actually controlled and read at submit time */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100">
             <h2 className="text-base font-bold text-[#1A1A1A] mb-5">Payment method</h2>
             <div className="flex flex-col gap-3">
@@ -381,7 +423,8 @@ const handlePlaceOrder = async () => {
                     type="radio"
                     name="payment"
                     value={method.id}
-                    defaultChecked={method.id === 'razorpay'}
+                    checked={paymentMethod === method.id}
+                    onChange={() => setPaymentMethod(method.id)}
                     className="accent-[#C6FF1E] w-4 h-4"
                   />
                   <span className="text-xl">{method.icon}</span>
@@ -451,7 +494,11 @@ const handlePlaceOrder = async () => {
                   : 'bg-[#C6FF1E] text-[#1A1A1A] hover:brightness-110 cursor-pointer'
               }`}
             >
-              {loading ? 'Placing order...' : `Place order • ₹${finalTotal.toLocaleString()}`}
+              {loading
+                ? 'Placing order...'
+                : paymentMethod === 'cod'
+                ? `Place order (Pay on delivery) • ₹${finalTotal.toLocaleString()}`
+                : `Place order • ₹${finalTotal.toLocaleString()}`}
             </button>
 
             <div className="flex flex-col gap-1.5 pt-2">
