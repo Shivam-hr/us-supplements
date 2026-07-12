@@ -168,9 +168,9 @@ function FaqAccordion() {
           >
             <button
               onClick={() => setOpenIndex(isOpen ? -1 : i)}
-              className="w-full flex items-center justify-between gap-4 px-7 py-5 text-left"
+              className="w-full flex items-center justify-between gap-4 px-5 md:px-7 py-4 md:py-5 text-left cursor-pointer"
             >
-              <span className="font-bold text-[#1A1A1A] text-base">{faq.q}</span>
+              <span className="font-bold text-[#1A1A1A] text-sm md:text-base">{faq.q}</span>
               {isOpen ? (
                 <Minus className="w-5 h-5 text-[#1A1A1A] shrink-0" strokeWidth={2.5} />
               ) : (
@@ -178,7 +178,7 @@ function FaqAccordion() {
               )}
             </button>
             {isOpen && (
-              <div className="px-7 pb-6 -mt-1">
+              <div className="px-5 md:px-7 pb-6 -mt-1">
                 <p className="text-sm text-gray-500 leading-relaxed">{faq.a}</p>
               </div>
             )}
@@ -196,7 +196,7 @@ export default function AuthenticityClient() {
       {/* HERO */}
       <div className="relative overflow-hidden bg-[#0A0B0D]">
 
-        {/* Full-bleed photo — fills entire hero height, right edge to edge, no letterboxing */}
+        {/* Full-bleed photo — desktop only. Fills entire hero height, right edge to edge, no letterboxing */}
         <div className="absolute inset-y-0 right-[10px] w-[48%] hidden md:block">
           <img
             src="/images/model/hero-model.png"
@@ -225,13 +225,13 @@ export default function AuthenticityClient() {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 px-16 pt-10 pb-16">
+        <div className="relative z-10 px-6 md:px-16 pt-10 pb-10 md:pb-16">
           <div className="max-w-xl">
             <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-[#C6FF1E] border border-[#C6FF1E]/40 rounded-full px-4 py-1.5 mb-6">
               Trusted. Tested. Authentic.
             </span>
 
-            <h1 className="text-5xl font-black leading-[1.1] mb-6">
+            <h1 className="text-4xl md:text-5xl font-black leading-[1.1] mb-6">
               <span className="text-white">Verified </span>
               <span className="text-[#C6FF1E]">Authentic</span>
               <br />
@@ -243,52 +243,11 @@ export default function AuthenticityClient() {
               authorized distributors.
             </p>
 
-            <div className="flex items-center gap-2 mb-10">
+            <div className="hidden md:flex items-center gap-2 mb-10">
               <span className="w-5 h-5 rounded-full bg-[#C6FF1E] flex items-center justify-center text-[#1A1A1A] text-xs font-black shrink-0">
                 ✓
               </span>
               <span className="text-white font-semibold text-sm">Verified by Official Brands</span>
-            </div>
-
-            {/* Icon badges row */}
-            <div className="flex items-start gap-6 mb-10">
-              <div className="flex flex-col items-center text-center gap-2 w-24">
-                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
-                  <UserCheck className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
-                </div>
-                <p className="text-white text-sm font-bold leading-snug">Official Distributors</p>
-                <p className="text-gray-500 text-xs">Sourced directly</p>
-              </div>
-
-              <div className="w-px h-16 bg-zinc-800 mt-7" />
-
-              <div className="flex flex-col items-center text-center gap-2 w-24">
-                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
-                  <PackageCheck className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
-                </div>
-                <p className="text-white text-sm font-bold leading-snug">Factory Sealed</p>
-                <p className="text-gray-500 text-xs">100% original packaging</p>
-              </div>
-
-              <div className="w-px h-16 bg-zinc-800 mt-7" />
-
-              <div className="flex flex-col items-center text-center gap-2 w-24">
-                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
-                  <Link2 className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
-                </div>
-                <p className="text-white text-sm font-bold leading-snug">Brand Verification Links</p>
-                <p className="text-gray-500 text-xs">Direct to official sites</p>
-              </div>
-
-              <div className="w-px h-16 bg-zinc-800 mt-7" />
-
-              <div className="flex flex-col items-center text-center gap-2 w-24">
-                <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
-                </div>
-                <p className="text-white text-sm font-bold leading-snug">100% Authentic</p>
-                <p className="text-gray-500 text-xs">No compromises</p>
-              </div>
             </div>
 
             <a
@@ -298,16 +257,83 @@ export default function AuthenticityClient() {
               Browse Brands ↓
             </a>
           </div>
+
+          {/* Mobile hero image — stacked below the text/button, own container per the mobile image spec.
+              Uses the desktop photo as a placeholder until a dedicated 1080x1350 mobile crop is generated —
+              swap the src below once that asset exists. */}
+          <div className="relative w-full h-[420px] mt-8 md:hidden">
+            <img
+               src="/images/model/hero-model-mobile.webp"
+              alt="US Supplements"
+              className="w-full h-full object-contain object-bottom"
+            />
+            <div className="absolute top-2 right-2 flex flex-col items-center justify-center w-24 h-28 drop-shadow-[0_0_18px_rgba(198,255,30,0.35)]">
+              {/* <svg viewBox="0 0 100 116" className="absolute inset-0 w-full h-full">
+                <path
+                  d="M50 2 L94 18 V56 C94 84 74 102 50 114 C26 102 6 84 6 56 V18 Z"
+                  fill="rgba(10,11,13,0.55)"
+                  stroke="#C6FF1E"
+                  strokeWidth="1.5"
+                />
+              </svg> */}
+              {/* <div className="relative flex flex-col items-center justify-center gap-0.5 pt-1.5">
+                <span className="text-white font-black text-base">100%</span>
+                <span className="text-white text-[8px] font-bold tracking-wider uppercase -mt-1">Authentic</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-[#C6FF1E] mt-0.5" strokeWidth={2.5} />
+              </div> */}
+            </div>
+          </div>
+
+          {/* Icon badges row — 2x2 grid on mobile, single row with dividers on desktop */}
+          <div className="grid grid-cols-2 gap-4 mt-8 md:mt-0 md:flex md:items-start md:gap-6 md:mb-10 max-w-xl">
+            <div className="flex flex-col items-center text-center gap-2 md:w-24">
+              <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
+                <UserCheck className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
+              </div>
+              <p className="text-white text-sm font-bold leading-snug">Official Distributors</p>
+              <p className="text-gray-500 text-xs">Sourced directly</p>
+            </div>
+
+            <div className="hidden md:block w-px h-16 bg-zinc-800 mt-7" />
+
+            <div className="flex flex-col items-center text-center gap-2 md:w-24">
+              <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
+                <PackageCheck className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
+              </div>
+              <p className="text-white text-sm font-bold leading-snug">Factory Sealed</p>
+              <p className="text-gray-500 text-xs">100% original packaging</p>
+            </div>
+
+            <div className="hidden md:block w-px h-16 bg-zinc-800 mt-7" />
+
+            <div className="flex flex-col items-center text-center gap-2 md:w-24">
+              <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
+                <Link2 className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
+              </div>
+              <p className="text-white text-sm font-bold leading-snug">Brand Verification Links</p>
+              <p className="text-gray-500 text-xs">Direct to official sites</p>
+            </div>
+
+            <div className="hidden md:block w-px h-16 bg-zinc-800 mt-7" />
+
+            <div className="flex flex-col items-center text-center gap-2 md:w-24">
+              <div className="w-14 h-14 rounded-full border border-zinc-700 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-[#C6FF1E]" strokeWidth={1.75} />
+              </div>
+              <p className="text-white text-sm font-bold leading-snug">100% Authentic</p>
+              <p className="text-gray-500 text-xs">No compromises</p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Brand carousel — dark section, flows directly from hero, no gradient/seam */}
-      <div id="verify-brands" className="bg-[#0A0B0D] px-16 pt-16 pb-20 scroll-mt-24">
+      <div id="verify-brands" className="bg-[#0A0B0D] px-6 md:px-16 pt-12 md:pt-16 pb-16 md:pb-20 scroll-mt-24">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#C6FF1E] mb-3">
             Trusted by official brands
           </span>
-          <h2 className="text-4xl font-black mb-3">
+          <h2 className="text-3xl md:text-4xl font-black mb-3">
             <span className="text-white">Shop </span>
             <span className="text-[#C6FF1E]">100% Authentic</span>
             <span className="text-white"> Brands</span>
@@ -332,8 +358,8 @@ export default function AuthenticityClient() {
       </div>
 
       {/* FAQ + Need Help — light section, rounded top overlaps the dark section slightly */}
-      <div className="bg-[#F7F8FA] rounded-t-[2rem] -mt-6 relative z-10 px-16 py-16">
-        <div className="grid grid-cols-[320px_1fr] gap-12">
+      <div className="bg-[#F7F8FA] rounded-t-[2rem] -mt-6 relative z-10 px-6 md:px-16 py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-8 md:gap-12">
 
           {/* Left: illustration + still have questions */}
           <div>
@@ -373,10 +399,10 @@ export default function AuthenticityClient() {
           {/* Right: FAQ accordion */}
           <div>
             <h2 className="font-black uppercase leading-[0.95] mb-4" style={{ fontStretch: 'condensed' }}>
-              <span className="block text-4xl text-[#1A1A1A] tracking-tight">Frequently</span>
+              <span className="block text-3xl md:text-4xl text-[#1A1A1A] tracking-tight">Frequently</span>
               <span className="relative inline-block mt-2">
                 <span className="absolute -inset-x-2 top-1 bottom-1 bg-[#C6FF1E] -rotate-1 rounded-sm" />
-                <span className="relative text-4xl text-[#1A1A1A] tracking-tight px-1">Asked Questions?</span>
+                <span className="relative text-3xl md:text-4xl text-[#1A1A1A] tracking-tight px-1">Asked Questions?</span>
               </span>
             </h2>
             <p className="text-gray-500 text-sm mb-8 leading-relaxed">
