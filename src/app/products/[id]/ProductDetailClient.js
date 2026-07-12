@@ -1,735 +1,556 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '../../../lib/supabase'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import Link from 'next/link'
-import { useCart } from '../../../context/CartContext'
-import ProductCard from '../../../Components/ProductCard'
-import LoginRequiredModal from '../../../Components/LoginRequiredModal'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { Navigation } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/navigation'
-import {
-  ShieldCheck, Lock, RotateCcw, Headphones, Minus, Plus,
-  ShoppingCart, ChevronLeft, ChevronRight, CheckCircle2, XCircle, MapPin,
-} from 'lucide-react'
+import { supabase } from '../../lib/supabase'
+import { useCart } from '../../context/CartContext'
+import { SlidersHorizontal, ArrowUpDown, X, ChevronDown, ChevronUp } from 'lucide-react'
 
-// Which categories tend to get bought alongside each category — used to build
-// the "Frequently Bought Together" bundle. Falls back to Accessories/Vitamins
-// for anything not listed, and to same-category-different-brand if a category
-// has no matching complementary stock at all.
-const complementMap = {
-  'Whey Protein': ['Creatine', 'Accessories'],
-  'Mass Gainer': ['Creatine', 'Accessories'],
-  'Pre-Workout': ['BCAA', 'Accessories'],
-  'Creatine': ['Whey Protein', 'Accessories'],
-  'BCAA': ['Whey Protein', 'Creatine'],
-  'Vitamins': ['Whey Protein', 'Accessories'],
+import { useSearchParams } from 'next/navigation'
+
+
+const categories = [
+  'Whey Protein', 'Mass Gainer', 'Pre-Workout', 'Creatine',
+  'BCAA', 'Vitamins', 'Weight Management', 'Accessories', 'Others']
+
+  const searchSynonyms = {
+  'mb': 'muscleblaze',
+  'avtar': 'avvatar',
+  'on': 'optimum nutrition',
+  'iso': 'isolate',
+  'bca': 'bcaa',
+  'mas gainer': 'mass gainer'
 }
-const defaultComplements = ['Accessories', 'Vitamins']
-const stackCategories = ['Pre-Workout', 'Creatine', 'BCAA', 'Vitamins']
 
-export default function ProductDetailClient({ id }) {
-  const { addToCart } = useCart()
-  const router = useRouter()
-  const [showLoginModal, setShowLoginModal] = useState(false)
 
-  const requireLogin = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setShowLoginModal(true)
-      return false
-    }
-    return true
-  }
 
-  const handleAddToCart = async (prod, qty) => {
-    if (!(await requireLogin())) return
-    addToCart(prod, qty)
-  }
-
-  const handleBuyNow = async (prod, qty) => {
-    if (!(await requireLogin())) return
-    addToCart(prod, qty)
-    router.push('/checkout')
-  }
-
-  const [product, setProduct] = useState(null)
-  const [variantSiblings, setVariantSiblings] = useState([])
-  const [relatedProducts, setRelatedProducts] = useState([])
-  const [bundleSlots, setBundleSlots] = useState([])
-  const [stackItems, setStackItems] = useState([])
-  const [trendingProducts, setTrendingProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [quantity, setQuantity] = useState(1)
-  const [pincode, setPincode] = useState('')
-  const [pincodeStatus, setPincodeStatus] = useState(null) // null | 'ok' | 'invalid'
-
-  useEffect(() => {
-    let active = true
-
-    const run = async () => {
-      setLoading(true)
-      setPincode('')
-      setPincodeStatus(null)
-      setQuantity(1)
-
-      const { data: prod } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', parseInt(id))
-        .single()
-
-      if (!active) return
-      setProduct(prod)
-      if (!prod) { setLoading(false); return }
-
-      // Variant siblings (flavour/weight switcher) — only products with a
-      // group_id set (currently just Avvatar) will have any siblings here.
-      if (prod.group_id) {
-        const { data: siblings } = await supabase
-          .from('products')
-          .select('id, weight, variant_label, price, in_stock')
-          .eq('group_id', prod.group_id)
-        setVariantSiblings(siblings || [])
-      } else {
-        setVariantSiblings([])
-      }
-
-      // You May Also Like — same category
-      const { data: related } = await supabase
-        .from('products')
-        .select('*')
-        .eq('category', prod.category)
-        .eq('in_stock', true)
-        .neq('id', prod.id)
-        .limit(8)
-      if (active) setRelatedProducts(related || [])
-
-      // Frequently Bought Together — complementary categories, same brand preferred
-      const categories = complementMap[prod.category] || defaultComplements
-      const slots = []
-      for (const cat of categories) {
-        const { data } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category', cat)
-          .eq('in_stock', true)
-          .limit(10)
-        if (data && data.length) {
-          const sorted = [...data].sort(
-            (a, b) => (b.brand === prod.brand ? 1 : 0) - (a.brand === prod.brand ? 1 : 0)
-          )
-          slots.push({ category: cat, candidates: sorted, index: 0 })
-        }
-      }
-      if (slots.length === 0) {
-        const { data } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category', prod.category)
-          .eq('in_stock', true)
-          .neq('brand', prod.brand)
-          .neq('id', prod.id)
-          .limit(10)
-        if (data && data.length) {
-          slots.push({ category: prod.category, candidates: data, index: 0 })
-        }
-      }
-      if (active) setBundleSlots(slots)
-
-      // Complete Your Stack — one representative product per category
-      const stackResults = []
-      for (const cat of stackCategories) {
-        if (cat === prod.category) continue
-        const { data } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category', cat)
-          .eq('in_stock', true)
-          .order('price', { ascending: true })
-          .limit(1)
-        if (data && data.length) stackResults.push(data[0])
-      }
-      if (active) setStackItems(stackResults)
-
-      // Trending Now
-      const { data: trending } = await supabase
-        .from('products')
-        .select('*')
-        .eq('in_stock', true)
-        .neq('id', prod.id)
-        .or('badge.eq.Trending,is_featured.eq.true')
-        .limit(12)
-      if (active) setTrendingProducts(trending || [])
-
-      setLoading(false)
-    }
-
-    run()
-    return () => { active = false }
-  }, [id])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
-        <div className="w-10 h-10 border-4 border-[#B7FF1E] border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (!product) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F7F8FA]">
-        <span className="text-5xl">😕</span>
-        <p className="text-xl font-bold text-[#161616]">Product not found</p>
-        <Link href="/products" className="bg-[#B7FF1E] text-[#101214] font-bold px-6 py-3 rounded-2xl text-sm">
-          Back to products
-        </Link>
-      </div>
-    )
-  }
-
+function ProductCard({ product }) {
   const discount = product.mrp > product.price
     ? Math.round((product.mrp - product.price) / product.mrp * 100)
     : 0
-
-  // Unique weights across all siblings (including this product itself)
-  const allVariants = [
-    { id: product.id, weight: product.weight, variant_label: product.variant_label, price: product.price, in_stock: product.in_stock },
-    ...variantSiblings.filter(s => s.id !== product.id),
-  ]
-  const availableWeights = [...new Set(allVariants.map(v => v.weight).filter(Boolean))]
-  // Flavours available at the CURRENTLY selected weight only
-  const flavoursAtCurrentWeight = allVariants.filter(v => v.weight === product.weight)
-
-  const goToVariant = (targetId) => {
-    if (targetId && targetId !== product.id) router.push(`/products/${targetId}`)
-  }
-
-  // When switching weight, jump to the sibling with the same flavour if it
-  // exists at that weight, otherwise just the first one available there.
-  const goToWeight = (targetWeight) => {
-    const sameFlavour = allVariants.find(v => v.weight === targetWeight && v.variant_label === product.variant_label)
-    const fallback = allVariants.find(v => v.weight === targetWeight)
-    goToVariant((sameFlavour || fallback)?.id)
-  }
-
-  const cycleSlot = (slotIdx, direction) => {
-    setBundleSlots(prev => prev.map((s, i) => {
-      if (i !== slotIdx) return s
-      const len = s.candidates.length
-      return { ...s, index: (s.index + direction + len) % len }
-    }))
-  }
-
-  const bundleItems = bundleSlots.map(s => s.candidates[s.index])
-  const bundleRawTotal = product.price + bundleItems.reduce((sum, p) => sum + p.price, 0)
-  const bundlePrice = Math.round(bundleRawTotal * 0.85)
-  const bundleSavings = bundleRawTotal - bundlePrice
-
-  const addBundleToCart = async () => {
-    if (!(await requireLogin())) return
-    addToCart(product, 1)
-    bundleItems.forEach(p => addToCart(p, 1))
-  }
-
-  const checkPincode = () => {
-    setPincodeStatus(/^\d{6}$/.test(pincode) ? 'ok' : 'invalid')
-  }
+    const { addToCart } = useCart()
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-16" style={{ backgroundColor: '#F7F8FA' }}>
-
-      {/* Breadcrumb */}
-      <div className="px-6 lg:px-16 py-4 flex items-center gap-2 text-sm text-gray-400 flex-wrap">
-        <Link href="/" className="hover:text-[#161616] transition-colors">Home</Link>
-        <span>›</span>
-        <Link href="/products" className="hover:text-[#161616] transition-colors">Products</Link>
-        <span>›</span>
-        <span className="text-[#161616] font-medium">{product.category}</span>
-        <span>›</span>
-        <span className="text-gray-400 truncate max-w-xs">{product.name}</span>
-      </div>
-
-      {/* HERO */}
-      <div className="px-6 lg:px-16 py-2 grid grid-cols-1 lg:grid-cols-[45%_55%] gap-6">
-
-        {/* Gallery card */}
-        <div className="flex flex-col gap-4">
-          <div
-            className="bg-white flex items-center justify-center"
-            style={{ borderRadius: '32px', padding: '40px', minHeight: '440px' }}
-          >
-            {product.images && product.images.length > 0 ? (
-              <Swiper
-                modules={[Navigation]}
-                navigation
-                spaceBetween={10}
-                slidesPerView={1}
-                className="w-full h-[380px] product-gallery-swiper"
-              >
-                {product.images.map((url, i) => (
-                  <SwiperSlide key={i} className="flex items-center justify-center">
-                    <img
-                      src={url}
-                      alt={`${product.name} - view ${i + 1}`}
-                      className="max-h-[380px] w-full object-contain"
-                    />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            ) : (
-              <img
-                src={product.image}
-                alt={product.name}
-                className="max-h-[380px] w-full object-contain"
-              />
-            )}
-          </div>
-
+    <Link href={`/products/${product.id}`}>
+      <div className="border border-gray-100 rounded-2xl p-3 hover:border-[#C6FF1E] hover:shadow-sm transition-all cursor-pointer group bg-white h-full flex flex-col">
+        <div className="relative">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-44 w-full object-contain rounded-xl mb-3 group-hover:scale-105 transition-transform"
+          />
           {!product.in_stock && (
-            <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-center">
-              <p className="text-red-500 font-semibold text-sm">Currently out of stock</p>
-              <p className="text-red-400 text-xs mt-0.5">Check back soon or browse similar products below</p>
+            <div className="absolute inset-0 bg-white/70 rounded-xl flex items-center justify-center">
+              <span className="text-xs font-bold text-gray-500 border border-gray-300 px-2 py-1 rounded-full">Out of stock</span>
             </div>
           )}
         </div>
-
-        {/* Product info card */}
-        <div className="bg-white flex flex-col gap-5" style={{ borderRadius: '32px', padding: '40px' }}>
-
-          <div className="flex items-center gap-3 flex-wrap">
-            <span style={{ fontSize: '18px', fontWeight: 500, color: '#6B7280' }}>{product.brand}</span>
-            {product.badge && (
-              <span
-                className="text-xs px-2.5 py-1 rounded-full font-bold"
-                style={{
-                  background: product.badge === 'New' ? '#101214' : '#B7FF1E',
-                  color: product.badge === 'New' ? '#B7FF1E' : '#101214',
-                }}
-              >
-                {product.badge}
-              </span>
-            )}
-            <span
-              className="flex items-center gap-1.5 text-xs font-bold"
-              style={{
-                background: product.in_stock ? '#ECFDF5' : '#FEF2F2',
-                color: product.in_stock ? '#22C55E' : '#EF4444',
-                padding: '8px 16px',
-                borderRadius: '999px',
-              }}
-            >
-              {product.in_stock ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-              {product.in_stock ? 'In Stock' : 'Out of Stock'}
-            </span>
-          </div>
-
-          <h1 style={{ fontSize: '42px', fontWeight: 700, lineHeight: 1.2, color: '#161616' }}>
-            {product.name}
-          </h1>
-
-          <span className="inline-block bg-gray-100 text-gray-500 text-xs font-medium px-3 py-1 rounded-full w-fit">
-            {product.category}
+        <p className="text-xs text-gray-400 mb-1">{product.brand}</p>
+        {product.badge && (
+          <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-semibold mb-1 w-fit ${product.badge === 'New' ? 'bg-[#1A1A1A] text-[#C6FF1E]' : 'bg-[#C6FF1E] text-[#1A1A1A]'}`}>
+            {product.badge}
           </span>
-
-          {/* Weight selector — only shows if this product has variant siblings */}
-          {availableWeights.length > 1 && (
-            <div>
-              <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wide mb-2">
-                Weight: <span className="text-[#161616]">{product.weight}</span>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {availableWeights.map(w => (
-                  <button
-                    key={w}
-                    onClick={() => goToWeight(w)}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
-                      w === product.weight
-                        ? 'bg-[#101214] text-[#B7FF1E] border-[#101214]'
-                        : 'bg-white text-[#161616] border-[#E5E7EB] hover:border-[#B7FF1E]'
-                    }`}
-                  >
-                    {w}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Flavour selector — only shows flavours available at the current weight */}
-          {flavoursAtCurrentWeight.length > 1 && (
-            <div>
-              <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wide mb-2">
-                Flavour: <span className="text-[#161616]">{product.variant_label}</span>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {flavoursAtCurrentWeight.map(v => (
-                  <button
-                    key={v.id}
-                    onClick={() => goToVariant(v.id)}
-                    disabled={!v.in_stock}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
-                      v.id === product.id
-                        ? 'bg-[#101214] text-[#B7FF1E] border-[#101214]'
-                        : v.in_stock
-                        ? 'bg-white text-[#161616] border-[#E5E7EB] hover:border-[#B7FF1E]'
-                        : 'bg-gray-50 text-gray-300 border-[#E5E7EB] cursor-not-allowed line-through'
-                    }`}
-                  >
-                    {v.variant_label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-baseline gap-4 flex-wrap">
-            <span style={{ fontSize: '42px', fontWeight: 800, color: '#161616' }}>
-              ₹{product.price.toLocaleString()}
-            </span>
-            {discount > 0 && (
-              <>
-                <span style={{ fontSize: '22px', color: '#9CA3AF', textDecoration: 'line-through' }}>
-                  ₹{product.mrp.toLocaleString()}
-                </span>
-                <span style={{ fontSize: '18px', fontWeight: 700, color: '#22C55E' }}>
-                  {discount}% OFF
-                </span>
-              </>
-            )}
-          </div>
-
+        )}
+        <p className="text-sm font-semibold text-[#1A1A1A] mb-2 leading-snug flex-1">{product.name}</p>
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="text-base font-bold text-[#1A1A1A]">₹{product.price.toLocaleString()}</span>
           {discount > 0 && (
-            <p className="text-sm font-medium -mt-3" style={{ color: '#22C55E' }}>
-              You save ₹{(product.mrp - product.price).toLocaleString()} on this order
-            </p>
+            <>
+              <span className="text-xs text-gray-400 line-through">₹{product.mrp.toLocaleString()}</span>
+              <span className="text-xs text-green-600 font-semibold">{discount}% off</span>
+            </>
           )}
-
-          {/* Delivery checker */}
-          <div
-            className="flex flex-col gap-3 p-4"
-            style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '16px' }}
-          >
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#161616]">
-              <MapPin className="w-4 h-4" />
-              Deliver to
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={6}
-                placeholder="Enter pincode"
-                value={pincode}
-                onChange={e => { setPincode(e.target.value.replace(/\D/g, '')); setPincodeStatus(null) }}
-                className="flex-1 min-w-0 px-4 text-sm border border-[#E5E7EB] rounded-2xl outline-none focus:border-[#B7FF1E]"
-                style={{ height: '52px' }}
-              />
-              <button
-                onClick={checkPincode}
-                className="px-6 text-sm font-bold text-white bg-[#101214] hover:bg-[#17191C] rounded-2xl transition-colors shrink-0"
-                style={{ height: '52px' }}
-              >
-                Check
-              </button>
-            </div>
-            {pincodeStatus === 'ok' && (
-              <div className="flex items-center gap-4 text-xs font-semibold flex-wrap">
-                <span className="flex items-center gap-1" style={{ color: '#22C55E' }}>
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Delivery by tomorrow
-                </span>
-                <span className="text-[#6B7280]">Free Shipping</span>
-              </div>
-            )}
-            {pincodeStatus === 'invalid' && (
-              <p className="text-xs font-semibold" style={{ color: '#EF4444' }}>
-                Please enter a valid 6-digit pincode
-              </p>
-            )}
-          </div>
-
-          {/* Quantity */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold text-[#161616]">Quantity</span>
-            <div
-              className="flex items-center border border-[#E5E7EB] overflow-hidden"
-              style={{ borderRadius: '16px', height: '52px' }}
-            >
-              <button
-                onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                className="w-12 h-full flex items-center justify-center hover:bg-gray-50 transition-colors"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="px-5 text-sm font-bold border-x border-[#E5E7EB] min-w-[3rem] text-center">
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity(q => q + 1)}
-                className="w-12 h-full flex items-center justify-center hover:bg-gray-50 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* CTA buttons — hidden on mobile, sticky bar takes over there */}
-          <div className="hidden lg:flex gap-3">
-            <button
-              onClick={() => handleAddToCart(product, quantity)}
-              disabled={!product.in_stock}
-              className={`flex-1 font-bold text-base transition-all flex items-center justify-center gap-2 ${
-                product.in_stock
-                  ? 'bg-[#B7FF1E] text-[#101214] hover:bg-[#C8FF4A] cursor-pointer'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-              style={{ height: '58px', borderRadius: '16px' }}
-            >
-              <ShoppingCart className="w-5 h-5" />
-              Add to Cart
-            </button>
-            <button
-              onClick={() => handleBuyNow(product, quantity)}
-              disabled={!product.in_stock}
-              className={`flex-1 font-bold text-base transition-all ${
-                product.in_stock
-                  ? 'bg-[#101214] text-white hover:bg-[#17191C] cursor-pointer'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-              style={{ height: '58px', borderRadius: '16px' }}
-            >
-              Buy Now
-            </button>
-          </div>
         </div>
-      </div>
-
-      {/* Sticky mobile Add to Cart bar */}
-      <div
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex gap-3 p-3"
-        style={{ backgroundColor: '#17191C' }}
-      >
         <button
-          onClick={() => handleAddToCart(product, quantity)}
-          disabled={!product.in_stock}
-          className={`flex-1 font-bold text-sm flex items-center justify-center gap-2 ${
-            product.in_stock ? 'bg-[#B7FF1E] text-[#101214] cursor-pointer' : 'bg-gray-600 text-gray-300 cursor-not-allowed'
-          }`}
-          style={{ height: '52px', borderRadius: '16px' }}
+          onClick={e => {
+            e.preventDefault()
+            addToCart(product, 1)
+          }}
+          className="w-full bg-[#1A1A1A] text-[#C6FF1E] text-sm font-semibold py-3 rounded-xl hover:bg-[#333] transition-all cursor-pointer"
         >
-          <ShoppingCart className="w-4 h-4" />
-          Add to Cart
-        </button>
-        <button
-          onClick={() => handleBuyNow(product, quantity)}
-          disabled={!product.in_stock}
-          className={`flex-1 font-bold text-sm ${product.in_stock ? 'bg-white text-[#101214] cursor-pointer' : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
-          style={{ height: '52px', borderRadius: '16px' }}
-        >
-          Buy Now
-        </button>
+          Add to cart
+       </button>
       </div>
+    </Link>
+  )
+}
 
-      {/* TRUST BAR */}
-      <div className="mt-10 py-8" style={{ backgroundColor: '#F8F6F1' }}>
-        <div className="px-6 lg:px-16 grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
-          {[
-            { icon: ShieldCheck, text: '100% Authentic' },
-            { icon: Lock, text: 'Secure Payments' },
-            { icon: RotateCcw, text: 'Easy Returns' },
-            { icon: Headphones, text: 'Customer Support' },
-          ].map(item => (
-            <div key={item.text} className="flex items-center gap-2.5 justify-center lg:justify-start">
-              <item.icon className="w-5 h-5 shrink-0" style={{ color: '#B7FF1E' }} strokeWidth={2} />
-              <span className="text-sm font-semibold text-[#161616]">{item.text}</span>
-            </div>
-          ))}
+const sortOptions = [
+  { label: 'Relevance', value: 'relevance' },
+  { label: 'Price: Low to High', value: 'price_asc' },
+  { label: 'Price: High to Low', value: 'price_desc' },
+  { label: 'Discount', value: 'discount' },
+  { label: 'Name A-Z', value: 'name' },
+]
+
+// Shared bottom-sheet shell used by both Filter and Sort on mobile —
+// slides up from the bottom with a backdrop, matches native app patterns.
+function BottomSheet({ open, onClose, title, children, footer }) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-[100] lg:hidden">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[85vh] flex flex-col">
+        <div className="flex justify-center pt-3">
+          <div className="w-10 h-1.5 bg-gray-200 rounded-full" />
         </div>
+        <div className="flex items-center justify-between px-5 pt-3 pb-4 border-b border-gray-100">
+          <h3 className="text-lg font-bold text-[#1A1A1A]">{title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-[#1A1A1A] cursor-pointer">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="overflow-y-auto flex-1 px-5 py-4">
+          {children}
+        </div>
+        {footer && (
+          <div className="px-5 py-4 border-t border-gray-100">
+            {footer}
+          </div>
+        )}
       </div>
-
-      {/* PRODUCT DETAILS */}
-      <div className="py-14 bg-white">
-        <div className="px-6 lg:px-16 max-w-5xl mx-auto">
-          <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }} className="mb-8">
-            Product Details
-          </h2>
-
-          {product.description && (
-            <div className="mb-10 flex flex-col gap-3 max-w-3xl">
-              {product.description.split('\n').filter(Boolean).map((para, i) => (
-                <p key={i} className="text-base leading-relaxed" style={{ color: '#374151' }}>
-                  {para}
-                </p>
-              ))}
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { label: 'Brand', value: product.brand },
-              { label: 'Category', value: product.category },
-              { label: 'Availability', value: product.in_stock ? 'In Stock' : 'Out of Stock' },
-              { label: 'Product ID', value: `#${product.id}` },
-            ].map(item => (
-              <div key={item.label} className="flex flex-col gap-1">
-                <span className="text-xs uppercase tracking-wide text-[#9CA3AF] font-semibold">{item.label}</span>
-                <span className="text-base font-semibold text-[#161616]">{item.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* FREQUENTLY BOUGHT TOGETHER */}
-      {bundleSlots.length > 0 && (
-        <div className="py-14" style={{ backgroundColor: '#F8F6F1' }}>
-          <div className="px-6 lg:px-16 max-w-5xl mx-auto">
-            <div className="flex items-center gap-3 mb-8 flex-wrap">
-              <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }}>Frequently Bought Together</h2>
-              <span className="bg-[#B7FF1E] text-[#101214] text-xs font-bold px-3 py-1 rounded-full">SAVE 15%</span>
-            </div>
-
-            <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-4">
-              <div className="flex items-center gap-4 flex-wrap justify-center flex-1">
-
-                <BundleItem product={product} />
-
-                {bundleSlots.map((slot, i) => (
-                  <div key={slot.category} className="flex items-center gap-4">
-                    <span className="text-2xl font-bold text-[#9CA3AF]">+</span>
-                    <BundleItem
-                      product={slot.candidates[slot.index]}
-                      onPrev={slot.candidates.length > 1 ? () => cycleSlot(i, -1) : null}
-                      onNext={slot.candidates.length > 1 ? () => cycleSlot(i, 1) : null}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-white rounded-[24px] p-6 flex flex-col gap-3 w-full lg:w-64 shrink-0" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}>
-                <div className="flex justify-between text-sm text-[#6B7280]">
-                  <span>Total Price</span>
-                  <span className="line-through">₹{bundleRawTotal.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold text-[#161616]">
-                  <span>You Pay</span>
-                  <span>₹{bundlePrice.toLocaleString()}</span>
-                </div>
-                <div className="text-xs font-semibold" style={{ color: '#22C55E' }}>
-                  You Save ₹{bundleSavings.toLocaleString()} (15%)
-                </div>
-                <button
-                  onClick={addBundleToCart}
-                  className="mt-2 bg-[#101214] text-white font-bold text-sm py-3.5 rounded-2xl hover:bg-[#17191C] transition-colors cursor-pointer"
-                >
-                  Add Bundle to Cart
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* YOU MAY ALSO LIKE */}
-      {relatedProducts.length > 0 && (
-        <div className="py-14 bg-white">
-          <div className="px-6 lg:px-16">
-            <div className="flex items-center justify-between mb-8">
-              <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }}>You May Also Like</h2>
-              <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors flex items-center gap-1">
-                See All →
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-              {relatedProducts.slice(0, 5).map(p => (
-                <ProductCard key={p.id} product={p} showBrand />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* COMPLETE YOUR STACK */}
-      {stackItems.length > 0 && (
-        <div className="py-14 bg-white">
-          <div className="px-6 lg:px-16">
-            <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }} className="mb-8">
-              Complete Your Stack
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-              {stackItems.map(p => (
-                <Link key={p.id} href={`/products/${p.id}`} className="flex flex-col items-center text-center gap-3 group">
-                  <div className="w-24 h-24 rounded-full flex items-center justify-center p-4" style={{ backgroundColor: '#F8F6F1' }}>
-                    <img src={p.image} alt={p.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#161616]">{p.category}</p>
-                    <p className="text-xs text-[#6B7280]">From ₹{p.price.toLocaleString()}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TRENDING NOW */}
-      {trendingProducts.length > 0 && (
-        <div className="py-14" style={{ backgroundColor: '#F8F6F1' }}>
-          <div className="px-6 lg:px-16">
-            <div className="flex items-center justify-between mb-8">
-              <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }}>Trending Now</h2>
-              <Link href="/products" className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors">
-                See All →
-              </Link>
-            </div>
-            <Swiper
-              className="trending-swiper px-1 py-2"
-              modules={[Navigation]}
-              navigation
-              spaceBetween={20}
-              slidesPerView={2}
-              breakpoints={{
-                640: { slidesPerView: 3 },
-                1024: { slidesPerView: 5 },
-              }}
-            >
-              {trendingProducts.map(p => (
-                <SwiperSlide key={p.id}>
-                  <ProductCard product={p} showBrand />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
-        </div>
-      )}
-
-      <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
-
     </div>
   )
 }
 
-function BundleItem({ product, onPrev, onNext }) {
-  if (!product) return null
-  return (
-    <div className="bg-white rounded-2xl p-4 w-36 flex flex-col items-center gap-2 relative" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}>
-      {onPrev && (
-        <button onClick={onPrev} className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full flex items-center justify-center border border-[#E5E7EB] hover:bg-[#B7FF1E] transition-colors z-10">
-          <ChevronLeft className="w-3.5 h-3.5" />
+function ProductsPageContent() {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [selectedBrands, setSelectedBrands] = useState([])
+  const [sort, setSort] = useState('relevance')
+  const [inStockOnly, setInStockOnly] = useState(false)
+  const [search, setSearch] = useState('')
+  const [priceMax, setPriceMax] = useState(20000)
+
+  // Mobile-only UI state — which bottom sheet is open, and whether the
+  // brand list inside the filter sheet is expanded (it's long, so it starts collapsed)
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
+  const [mobileSortOpen, setMobileSortOpen] = useState(false)
+  const [brandsExpanded, setBrandsExpanded] = useState(false)
+
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const urlSearch = searchParams.get('search')
+    if (urlSearch) {
+      setSearch(urlSearch)
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    const urlCategory = searchParams.get('category')
+    if (urlCategory) {
+      setSelectedCategory(urlCategory)
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    const urlBrand = searchParams.get('brand')
+    if (urlBrand) {
+      setSelectedBrands([urlBrand])
+    }
+  }, [searchParams])
+
+  // THIS is where await goes — inside useEffect, inside an async function
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+
+      if (error) {
+        console.error('Error fetching products:', error.message)
+      } else {
+        setProducts(data)
+      }
+      setLoading(false)
+    }
+
+    fetchProducts()
+  }, []) // empty array = run once when page loads
+
+  const allBrands = useMemo(() => [...new Set(products.map(p => p.brand))].sort(), [products])
+
+const filtered = useMemo(() => {
+    let result = [...products]
+
+    if (search.trim()) {
+      let q = search.toLowerCase().trim()
+
+      // 1. Swap out synonyms
+      Object.keys(searchSynonyms).forEach(key => {
+        const regex = new RegExp(`\\b${key}\\b`, 'gi')
+        q = q.replace(regex, searchSynonyms[key])
+      })
+
+      // 2. Split the search query into individual words (e.g., ["muscleblaze", "shaker"])
+      const searchWords = q.split(/\s+/)
+
+      // 3. Make sure EVERY word exists somewhere in the product name, brand, or category
+      result = result.filter(p => {
+        const searchableText = `${p.name} ${p.brand} ${p.category}`.toLowerCase()
+        return searchWords.every(word => searchableText.includes(word))
+      })
+    }
+
+    if (selectedCategory !== 'All') result = result.filter(p => p.category === selectedCategory)
+    if (selectedBrands.length > 0) result = result.filter(p => selectedBrands.includes(p.brand))
+    if (inStockOnly) result = result.filter(p => p.in_stock)
+    result = result.filter(p => p.price <= priceMax)
+
+    switch (sort) {
+      case 'price_asc': result.sort((a, b) => a.price - b.price); break
+      case 'price_desc': result.sort((a, b) => b.price - a.price); break
+      case 'discount': result.sort((a, b) => {
+        const da = a.mrp > a.price ? (a.mrp - a.price) / a.mrp : 0
+        const db = b.mrp > b.price ? (b.mrp - b.price) / b.mrp : 0
+        return db - da
+      }); break
+      case 'name': result.sort((a, b) => a.name.localeCompare(b.name)); break
+    }
+    return result
+  }, [search, selectedCategory, selectedBrands, inStockOnly, sort, priceMax, products])
+
+  const toggleBrand = (brand) => {
+    setSelectedBrands(prev =>
+      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
+    )
+  }
+
+  const clearFilters = () => {
+    setSelectedCategory('All')
+    setSelectedBrands([])
+    setInStockOnly(false)
+    setPriceMax(20000)
+    setSearch('')
+  }
+
+  const hasFilters = selectedCategory !== 'All' || selectedBrands.length > 0 || inStockOnly || priceMax < 20000 || search
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-[#C6FF1E] border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-gray-400">Loading products...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Reusable category list — used inside the mobile filter sheet.
+  // Kept as single-select to match the existing desktop sidebar behavior
+  // (and every ?category= link pointing at this page) — just styled as a
+  // checkbox-like row per the mobile design, not turned into true multi-select.
+  const CategoryList = () => (
+    <div className="flex flex-col gap-1">
+      {['All', ...categories].map(cat => (
+        <button
+          key={cat}
+          onClick={() => setSelectedCategory(cat)}
+          className="flex items-center gap-3 py-2.5 text-left cursor-pointer"
+        >
+          <span className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${
+            selectedCategory === cat ? 'bg-[#C6FF1E] border-[#C6FF1E]' : 'border-gray-300'
+          }`}>
+            {selectedCategory === cat && <span className="text-[#1A1A1A] text-xs font-bold">✓</span>}
+          </span>
+          <span className={`text-sm ${selectedCategory === cat ? 'font-semibold text-[#1A1A1A]' : 'text-gray-600'}`}>
+            {cat}
+          </span>
         </button>
-      )}
-      <img src={product.image} alt={product.name} className="h-20 w-full object-contain" />
-      <p className="text-xs font-semibold text-[#161616] text-center leading-snug line-clamp-2">{product.name}</p>
-      <p className="text-xs font-bold text-[#161616]">₹{product.price.toLocaleString()}</p>
-      {onNext && (
-        <button onClick={onNext} className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full flex items-center justify-center border border-[#E5E7EB] hover:bg-[#B7FF1E] transition-colors z-10">
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      )}
+      ))}
     </div>
+  )
+
+  return (
+    <div className="min-h-screen bg-white">
+
+      {/* ============ DESKTOP LAYOUT (lg and up) — unchanged from before ============ */}
+      <div className="hidden lg:block">
+        <div className="border-b border-gray-100 px-8 py-5 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-[#1A1A1A]">All Products</h1>
+            <p className="text-sm text-gray-400 mt-0.5">{filtered.length} products found</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {hasFilters && (
+              <button onClick={clearFilters} className="text-sm text-gray-500 hover:text-[#1A1A1A] underline cursor-pointer">
+                Clear all filters
+              </button>
+            )}
+            <select
+              value={sort}
+              onChange={e => setSort(e.target.value)}
+              className="border border-gray-200 rounded-xl px-4 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C6FF1E] cursor-pointer"
+            >
+              {sortOptions.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex">
+          <aside className="w-60 shrink-0 border-r border-gray-100 px-5 py-6 sticky top-45 h-[calc(100vh-9rem-2rem)] overflow-y-auto">
+            <div className="mb-6">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1A1A] mb-3">Search</p>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search products..."
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#C6FF1E]"
+              />
+            </div>
+            <div className="mb-6">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1A1A] mb-3">Category</p>
+              <div className="flex flex-col gap-1.5">
+                {['All', ...categories].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`text-left text-sm px-3 py-1.5 rounded-xl transition-all cursor-pointer ${selectedCategory === cat ? 'bg-[#C6FF1E] text-[#1A1A1A] font-semibold' : 'text-gray-500 hover:bg-gray-100'}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-6">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1A1A] mb-3">
+                Max price: ₹{priceMax.toLocaleString()}
+              </p>
+              <input
+                type="range" min={100} max={20000} step={100}
+                value={priceMax}
+                onChange={e => setPriceMax(Number(e.target.value))}
+                className="w-full accent-[#C6FF1E]"
+              />
+              <div className="flex justify-between text-xs text-gray-400 mt-1">
+                <span>₹100</span><span>₹20,000</span>
+              </div>
+            </div>
+            <div className="mb-6">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={inStockOnly}
+                  onChange={e => setInStockOnly(e.target.checked)}
+                  className="accent-[#C6FF1E] w-4 h-4"
+                />
+                <span className="text-sm text-[#1A1A1A] font-medium">In stock only</span>
+              </label>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1A1A] mb-3">Brand</p>
+              <div className="flex flex-col gap-1.5 max-h-72 overflow-y-auto">
+                {allBrands.map(brand => (
+                  <label key={brand} className="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" checked={selectedBrands.includes(brand)}
+                      onChange={() => toggleBrand(brand)}
+                      className="accent-[#C6FF1E] w-3.5 h-3.5 shrink-0"
+                    />
+                    <span className="text-sm text-gray-500 group-hover:text-[#1A1A1A] transition-colors leading-snug">
+                      {brand}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          <main className="flex-1 px-6 py-6">
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <span className="text-5xl mb-4">🔍</span>
+                <p className="text-lg font-semibold text-[#1A1A1A]">No products found</p>
+                <p className="text-sm text-gray-400 mt-2">Try adjusting your filters or search term</p>
+                <button onClick={clearFilters} className="mt-4 bg-[#C6FF1E] text-[#1A1A1A] font-bold px-6 py-2.5 rounded-xl text-sm cursor-pointer">
+                  Clear filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filtered.map(p => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+
+      {/* ============ MOBILE LAYOUT (below lg) ============ */}
+      <div className="lg:hidden px-4 py-4">
+
+        {/* Search bar */}
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search for 'Whey Protein'..."
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#C6FF1E] mb-3"
+        />
+
+        {/* Filter / Sort buttons */}
+        <div className="flex gap-3 mb-4">
+          <button
+            onClick={() => setMobileFilterOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-3 text-sm font-semibold text-[#1A1A1A] cursor-pointer"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            Filter
+          </button>
+          <button
+            onClick={() => setMobileSortOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-3 text-sm font-semibold text-[#1A1A1A] cursor-pointer"
+          >
+            <ArrowUpDown className="w-4 h-4" />
+            Sort
+          </button>
+        </div>
+
+        {/* Product count + clear filters */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="font-bold text-[#1A1A1A]">All Products</p>
+            <p className="text-xs text-gray-400">{filtered.length} products found</p>
+          </div>
+          {hasFilters && (
+            <button onClick={clearFilters} className="text-xs text-gray-500 underline cursor-pointer">
+              Clear all
+            </button>
+          )}
+        </div>
+
+        {/* 2-column product grid */}
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <span className="text-5xl mb-4">🔍</span>
+            <p className="text-base font-semibold text-[#1A1A1A]">No products found</p>
+            <p className="text-sm text-gray-400 mt-2">Try adjusting your filters or search term</p>
+            <button onClick={clearFilters} className="mt-4 bg-[#C6FF1E] text-[#1A1A1A] font-bold px-6 py-2.5 rounded-xl text-sm cursor-pointer">
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {filtered.map(p => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ============ MOBILE FILTER BOTTOM SHEET ============ */}
+      <BottomSheet
+        open={mobileFilterOpen}
+        onClose={() => setMobileFilterOpen(false)}
+        title="Filters"
+        footer={
+          <button
+            onClick={() => setMobileFilterOpen(false)}
+            className="w-full bg-[#C6FF1E] text-[#1A1A1A] font-bold py-3.5 rounded-xl text-sm cursor-pointer"
+          >
+            Apply Filters ({filtered.length})
+          </button>
+        }
+      >
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-bold text-[#1A1A1A]">Category</p>
+        </div>
+        <CategoryList />
+
+        <div className="border-t border-gray-100 my-5" />
+
+        <p className="text-sm font-bold text-[#1A1A1A] mb-3">Price Range</p>
+        <p className="text-xs text-gray-400 mb-2">Up to ₹{priceMax.toLocaleString()}</p>
+        <input
+          type="range" min={100} max={20000} step={100}
+          value={priceMax}
+          onChange={e => setPriceMax(Number(e.target.value))}
+          className="w-full accent-[#C6FF1E]"
+        />
+        <div className="flex justify-between text-xs text-gray-400 mt-1 mb-5">
+          <span>₹100</span><span>₹20,000</span>
+        </div>
+
+        <label className="flex items-center gap-2 cursor-pointer mb-5">
+          <input type="checkbox" checked={inStockOnly}
+            onChange={e => setInStockOnly(e.target.checked)}
+            className="accent-[#C6FF1E] w-4 h-4"
+          />
+          <span className="text-sm text-[#1A1A1A] font-medium">In stock only</span>
+        </label>
+
+        <div className="border-t border-gray-100 my-5" />
+
+        <button
+          onClick={() => setBrandsExpanded(!brandsExpanded)}
+          className="w-full flex items-center justify-between mb-3 cursor-pointer"
+        >
+          <p className="text-sm font-bold text-[#1A1A1A]">Brands</p>
+          {brandsExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+        </button>
+        {brandsExpanded && (
+          <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
+            {allBrands.map(brand => (
+              <label key={brand} className="flex items-center gap-2 cursor-pointer py-1.5">
+                <input type="checkbox" checked={selectedBrands.includes(brand)}
+                  onChange={() => toggleBrand(brand)}
+                  className="accent-[#C6FF1E] w-4 h-4 shrink-0"
+                />
+                <span className="text-sm text-gray-600">{brand}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* ============ MOBILE SORT BOTTOM SHEET ============ */}
+      <BottomSheet
+        open={mobileSortOpen}
+        onClose={() => setMobileSortOpen(false)}
+        title="Sort by"
+        footer={
+          <button
+            onClick={() => setMobileSortOpen(false)}
+            className="w-full bg-[#C6FF1E] text-[#1A1A1A] font-bold py-3.5 rounded-xl text-sm cursor-pointer"
+          >
+            Apply
+          </button>
+        }
+      >
+        <div className="flex flex-col">
+          {sortOptions.map(o => (
+            <button
+              key={o.value}
+              onClick={() => setSort(o.value)}
+              className="flex items-center justify-between py-3.5 border-b border-gray-50 last:border-0 cursor-pointer"
+            >
+              <span className={`text-sm ${sort === o.value ? 'font-semibold text-[#1A1A1A]' : 'text-gray-600'}`}>
+                {o.label}
+              </span>
+              <span className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
+                sort === o.value ? 'border-[#C6FF1E]' : 'border-gray-300'
+              }`}>
+                {sort === o.value && <span className="w-2.5 h-2.5 rounded-full bg-[#C6FF1E]" />}
+              </span>
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
+    </div>
+  )
+}
+export default function ProductsListClient() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#C6FF1E] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ProductsPageContent />
+    </Suspense>
   )
 }
