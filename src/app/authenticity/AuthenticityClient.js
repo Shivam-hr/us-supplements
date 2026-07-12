@@ -268,19 +268,19 @@ export default function AuthenticityClient() {
               className="w-full h-full object-contain object-bottom"
             />
             <div className="absolute top-2 right-2 flex flex-col items-center justify-center w-24 h-28 drop-shadow-[0_0_18px_rgba(198,255,30,0.35)]">
-              {/* <svg viewBox="0 0 100 116" className="absolute inset-0 w-full h-full">
+              <svg viewBox="0 0 100 116" className="absolute inset-0 w-full h-full">
                 <path
                   d="M50 2 L94 18 V56 C94 84 74 102 50 114 C26 102 6 84 6 56 V18 Z"
                   fill="rgba(10,11,13,0.55)"
                   stroke="#C6FF1E"
                   strokeWidth="1.5"
                 />
-              </svg> */}
-              {/* <div className="relative flex flex-col items-center justify-center gap-0.5 pt-1.5">
+              </svg>
+              <div className="relative flex flex-col items-center justify-center gap-0.5 pt-1.5">
                 <span className="text-white font-black text-base">100%</span>
                 <span className="text-white text-[8px] font-bold tracking-wider uppercase -mt-1">Authentic</span>
                 <ShieldCheck className="w-3.5 h-3.5 text-[#C6FF1E] mt-0.5" strokeWidth={2.5} />
-              </div> */}
+              </div>
             </div>
           </div>
 
