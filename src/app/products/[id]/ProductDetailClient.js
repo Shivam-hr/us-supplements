@@ -13,6 +13,7 @@ import 'swiper/css/navigation'
 import {
   ShieldCheck, Lock, RotateCcw, Headphones, Minus, Plus,
   ShoppingCart, ChevronLeft, ChevronRight, CheckCircle2, XCircle, MapPin,
+  Star, ChevronDown, ThumbsUp, Clock,
 } from 'lucide-react'
 
 // Which categories tend to get bought alongside each category — used to build
@@ -65,6 +66,7 @@ export default function ProductDetailClient({ id }) {
   const [quantity, setQuantity] = useState(1)
   const [pincode, setPincode] = useState('')
   const [pincodeStatus, setPincodeStatus] = useState(null) // null | 'ok' | 'invalid'
+  const [descOpen, setDescOpen] = useState(true)
 
   useEffect(() => {
     let active = true
@@ -204,6 +206,14 @@ export default function ProductDetailClient({ id }) {
   // Flavours available at the CURRENTLY selected weight only
   const flavoursAtCurrentWeight = allVariants.filter(v => v.weight === product.weight)
 
+  // Variant vs. highlights branching — products with real siblings show
+  // weight/flavour pickers, everything else shows a Highlights card built
+  // from its own description instead of leaving empty space.
+  const showWeightSelector = availableWeights.length > 1
+  const showFlavourSelector = flavoursAtCurrentWeight.length > 1
+  const descriptionLines = product.description ? product.description.split('\n').map(s => s.trim()).filter(Boolean) : []
+  const showHighlights = !showWeightSelector && !showFlavourSelector && descriptionLines.length > 0
+
   const goToVariant = (targetId) => {
     if (targetId && targetId !== product.id) router.push(`/products/${targetId}`)
   }
@@ -259,8 +269,7 @@ export default function ProductDetailClient({ id }) {
         {/* Gallery card */}
         <div className="flex flex-col gap-4">
           <div
-            className="bg-white flex items-center justify-center"
-            style={{ borderRadius: '32px', padding: '40px', minHeight: '440px' }}
+            className="bg-white flex items-center justify-center rounded-[24px] p-6 min-h-[320px] lg:rounded-[32px] lg:p-10 lg:min-h-[440px]"
           >
             {product.images && product.images.length > 0 ? (
               <Swiper
@@ -268,14 +277,14 @@ export default function ProductDetailClient({ id }) {
                 navigation
                 spaceBetween={10}
                 slidesPerView={1}
-                className="w-full h-[380px] product-gallery-swiper"
+                className="w-full h-[240px] lg:h-[380px] product-gallery-swiper"
               >
                 {product.images.map((url, i) => (
                   <SwiperSlide key={i} className="flex items-center justify-center">
                     <img
                       src={url}
                       alt={`${product.name} - view ${i + 1}`}
-                      className="max-h-[380px] w-full object-contain"
+                      className="max-h-[240px] lg:max-h-[380px] w-full object-contain"
                     />
                   </SwiperSlide>
                 ))}
@@ -284,7 +293,7 @@ export default function ProductDetailClient({ id }) {
               <img
                 src={product.image}
                 alt={product.name}
-                className="max-h-[380px] w-full object-contain"
+                className="max-h-[240px] lg:max-h-[380px] w-full object-contain"
               />
             )}
           </div>
@@ -298,10 +307,12 @@ export default function ProductDetailClient({ id }) {
         </div>
 
         {/* Product info card */}
-        <div className="bg-white flex flex-col gap-5" style={{ borderRadius: '32px', padding: '40px' }}>
+        <div className="bg-white flex flex-col gap-4 lg:gap-5 rounded-[24px] p-6 lg:rounded-[32px] lg:p-10">
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <span style={{ fontSize: '18px', fontWeight: 500, color: '#6B7280' }}>{product.brand}</span>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="text-sm lg:text-lg font-medium" style={{ color: '#6B7280' }}>
+              {product.brand}{product.category && <> · {product.category}</>}
+            </span>
             {product.badge && (
               <span
                 className="text-xs px-2.5 py-1 rounded-full font-bold"
@@ -327,16 +338,36 @@ export default function ProductDetailClient({ id }) {
             </span>
           </div>
 
-          <h1 style={{ fontSize: '42px', fontWeight: 700, lineHeight: 1.2, color: '#161616' }}>
+          <h1 className="text-[28px] lg:text-[42px] font-bold leading-[1.2]" style={{ color: '#161616' }}>
             {product.name}
           </h1>
 
-          <span className="inline-block bg-gray-100 text-gray-500 text-xs font-medium px-3 py-1 rounded-full w-fit">
-            {product.category}
-          </span>
+          {/* Ratings — only shows once you've added rating/reviews in Supabase */}
+          {!!product.rating && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Star
+                    key={i}
+                    className="w-4 h-4 lg:w-5 lg:h-5"
+                    style={{
+                      fill: i <= Math.round(product.rating) ? '#F59E0B' : '#E5E7EB',
+                      color: i <= Math.round(product.rating) ? '#F59E0B' : '#E5E7EB',
+                    }}
+                  />
+                ))}
+              </div>
+              <span className="text-sm lg:text-base font-bold" style={{ color: '#161616' }}>{product.rating}</span>
+              {!!product.reviews && (
+                <span className="text-sm" style={{ color: '#6B7280' }}>
+                  ({Number(product.reviews).toLocaleString()}+ Ratings)
+                </span>
+              )}
+            </div>
+          )}
 
-          {/* Weight selector — only shows if this product has variant siblings */}
-          {availableWeights.length > 1 && (
+          {/* Weight selector — only shows if this product has real variant siblings */}
+          {showWeightSelector && (
             <div>
               <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wide mb-2">
                 Weight: <span className="text-[#161616]">{product.weight}</span>
@@ -346,7 +377,7 @@ export default function ProductDetailClient({ id }) {
                   <button
                     key={w}
                     onClick={() => goToWeight(w)}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                    className={`h-11 px-4 rounded-[14px] text-sm font-bold border transition-colors ${
                       w === product.weight
                         ? 'bg-[#101214] text-[#B7FF1E] border-[#101214]'
                         : 'bg-white text-[#161616] border-[#E5E7EB] hover:border-[#B7FF1E]'
@@ -360,18 +391,18 @@ export default function ProductDetailClient({ id }) {
           )}
 
           {/* Flavour selector — only shows flavours available at the current weight */}
-          {flavoursAtCurrentWeight.length > 1 && (
+          {showFlavourSelector && (
             <div>
               <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wide mb-2">
                 Flavour: <span className="text-[#161616]">{product.variant_label}</span>
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {flavoursAtCurrentWeight.map(v => (
                   <button
                     key={v.id}
                     onClick={() => goToVariant(v.id)}
                     disabled={!v.in_stock}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${
+                    className={`h-11 px-4 rounded-[14px] text-sm font-bold border transition-colors ${
                       v.id === product.id
                         ? 'bg-[#101214] text-[#B7FF1E] border-[#101214]'
                         : v.in_stock
@@ -386,16 +417,31 @@ export default function ProductDetailClient({ id }) {
             </div>
           )}
 
-          <div className="flex items-baseline gap-4 flex-wrap">
-            <span style={{ fontSize: '42px', fontWeight: 800, color: '#161616' }}>
+          {/* Highlights — shown instead of weight/flavour when a product has no siblings, built from its own description */}
+          {showHighlights && (
+            <div className="rounded-[20px] p-5 flex flex-col gap-3" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB' }}>
+              <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wide">Highlights</p>
+              <ul className="flex flex-col gap-2.5">
+                {descriptionLines.slice(0, 5).map((line, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm font-medium" style={{ color: '#161616' }}>
+                    <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#22C55E' }} />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex items-baseline gap-3 lg:gap-4 flex-wrap">
+            <span className="text-[32px] lg:text-[42px] font-extrabold" style={{ color: '#161616' }}>
               ₹{product.price.toLocaleString()}
             </span>
             {discount > 0 && (
               <>
-                <span style={{ fontSize: '22px', color: '#9CA3AF', textDecoration: 'line-through' }}>
+                <span className="text-lg lg:text-[22px]" style={{ color: '#9CA3AF', textDecoration: 'line-through' }}>
                   ₹{product.mrp.toLocaleString()}
                 </span>
-                <span style={{ fontSize: '18px', fontWeight: 700, color: '#22C55E' }}>
+                <span className="text-sm lg:text-lg font-bold" style={{ color: '#22C55E' }}>
                   {discount}% OFF
                 </span>
               </>
@@ -550,20 +596,67 @@ export default function ProductDetailClient({ id }) {
         </div>
       </div>
 
+      {/* CUSTOMER SATISFACTION */}
+      <div className="py-10 bg-white">
+        <div className="px-6 lg:px-16 max-w-5xl mx-auto">
+          <div className="bg-white rounded-[20px] p-5 lg:p-8 grid grid-cols-3 gap-4 text-center" style={{ border: '1px solid #E5E7EB' }}>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-9 h-9 lg:w-11 lg:h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: '#101214' }}>
+                <Star className="w-4 h-4 lg:w-5 lg:h-5" style={{ fill: '#B7FF1E', color: '#B7FF1E' }} />
+              </div>
+              <span className="text-lg lg:text-2xl font-extrabold" style={{ color: '#161616' }}>
+                {product.rating || '4.8'}/5
+              </span>
+              <span className="text-xs" style={{ color: '#6B7280' }}>
+                {product.reviews ? `${Number(product.reviews).toLocaleString()}+ Ratings` : 'Customer Rating'}
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-9 h-9 lg:w-11 lg:h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: '#101214' }}>
+                <ThumbsUp className="w-4 h-4 lg:w-5 lg:h-5" style={{ color: '#B7FF1E' }} />
+              </div>
+              <span className="text-lg lg:text-2xl font-extrabold" style={{ color: '#161616' }}>95%</span>
+              <span className="text-xs" style={{ color: '#6B7280' }}>Would Recommend</span>
+            </div>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-9 h-9 lg:w-11 lg:h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: '#101214' }}>
+                <Clock className="w-4 h-4 lg:w-5 lg:h-5" style={{ color: '#B7FF1E' }} />
+              </div>
+              <span className="text-lg lg:text-2xl font-extrabold" style={{ color: '#161616' }}>24/7</span>
+              <span className="text-xs" style={{ color: '#6B7280' }}>Customer Support</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* PRODUCT DETAILS */}
       <div className="py-14 bg-white">
         <div className="px-6 lg:px-16 max-w-5xl mx-auto">
-          <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }} className="mb-8">
+          <h2 className="text-[26px] lg:text-[32px] font-bold mb-6 lg:mb-8" style={{ color: '#161616' }}>
             Product Details
           </h2>
 
           {product.description && (
-            <div className="mb-10 flex flex-col gap-3 max-w-3xl">
-              {product.description.split('\n').filter(Boolean).map((para, i) => (
-                <p key={i} className="text-base leading-relaxed" style={{ color: '#374151' }}>
-                  {para}
-                </p>
-              ))}
+            <div className="mb-8 max-w-3xl rounded-[20px] overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
+              <button
+                onClick={() => setDescOpen(o => !o)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left"
+              >
+                <span className="text-sm font-bold uppercase tracking-wide" style={{ color: '#161616' }}>Description</span>
+                <ChevronDown
+                  className="w-4 h-4 shrink-0 transition-transform"
+                  style={{ color: '#6B7280', transform: descOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                />
+              </button>
+              {descOpen && (
+                <div className="px-5 pb-5 flex flex-col gap-3">
+                  {product.description.split('\n').filter(Boolean).map((para, i) => (
+                    <p key={i} className="text-base leading-relaxed" style={{ color: '#374151' }}>
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -588,7 +681,7 @@ export default function ProductDetailClient({ id }) {
         <div className="py-14" style={{ backgroundColor: '#F8F6F1' }}>
           <div className="px-6 lg:px-16 max-w-5xl mx-auto">
             <div className="flex items-center gap-3 mb-8 flex-wrap">
-              <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }}>Frequently Bought Together</h2>
+              <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>Frequently Bought Together</h2>
               <span className="bg-[#B7FF1E] text-[#101214] text-xs font-bold px-3 py-1 rounded-full">SAVE 15%</span>
             </div>
 
@@ -638,7 +731,7 @@ export default function ProductDetailClient({ id }) {
         <div className="py-14 bg-white">
           <div className="px-6 lg:px-16">
             <div className="flex items-center justify-between mb-8">
-              <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }}>You May Also Like</h2>
+              <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>You May Also Like</h2>
               <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors flex items-center gap-1">
                 See All →
               </Link>
@@ -656,7 +749,7 @@ export default function ProductDetailClient({ id }) {
       {stackItems.length > 0 && (
         <div className="py-14 bg-white">
           <div className="px-6 lg:px-16">
-            <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }} className="mb-8">
+            <h2 className="text-[24px] lg:text-[32px] font-bold mb-8" style={{ color: '#161616' }}>
               Complete Your Stack
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
@@ -681,7 +774,7 @@ export default function ProductDetailClient({ id }) {
         <div className="py-14" style={{ backgroundColor: '#F8F6F1' }}>
           <div className="px-6 lg:px-16">
             <div className="flex items-center justify-between mb-8">
-              <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#161616' }}>Trending Now</h2>
+              <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>Trending Now</h2>
               <Link href="/products" className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors">
                 See All →
               </Link>
