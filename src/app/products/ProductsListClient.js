@@ -89,13 +89,19 @@ function BottomSheet({ open, onClose, title, children, footer }) {
   return (
     <div className="fixed inset-0 z-[100] lg:hidden">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[85vh] flex flex-col">
+        <div className="
+      absolute bottom-0 left-0 right-0
+      bg-gradient-to-b from-[#111111] to-[#000000]
+      rounded-t-3xl max-h-[85vh]
+      flex flex-col
+      border border-[#2A2A2A]
+      ">
         <div className="flex justify-center pt-3">
-          <div className="w-10 h-1.5 bg-gray-200 rounded-full" />
+          <div className="w-10 h-1.5 bg-[#5A5A5A] rounded-full" />
         </div>
         <div className="flex items-center justify-between px-5 pt-3 pb-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-[#1A1A1A]">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-[#1A1A1A] cursor-pointer">
+          <h3 className="text-lg font-bold text-white">{title}</h3>
+          <button onClick={onClose} className="text-white/70 hover:text-white hover:text-[#1A1A1A] cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -103,7 +109,7 @@ function BottomSheet({ open, onClose, title, children, footer }) {
           {children}
         </div>
         {footer && (
-          <div className="px-5 py-4 border-t border-gray-100">
+          <div className="px-5 py-4 border-t border-[#2A2A2A]">
             {footer}
           </div>
         )}
@@ -255,7 +261,7 @@ const filtered = useMemo(() => {
           }`}>
             {selectedCategory === cat && <span className="text-[#1A1A1A] text-xs font-bold">✓</span>}
           </span>
-          <span className={`text-sm ${selectedCategory === cat ? 'font-semibold text-[#1A1A1A]' : 'text-gray-600'}`}>
+          <span className={`text-sm ${selectedCategory === cat ? 'font-semibold text-white' : 'text-gray-300'}`}>
             {cat}
           </span>
         </button>
@@ -395,14 +401,24 @@ const filtered = useMemo(() => {
         <div className="flex gap-3 mb-4">
           <button
             onClick={() => setMobileFilterOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-3 text-sm font-semibold text-[#1A1A1A] cursor-pointer"
+            className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold cursor-pointer transition-all
+            ${
+              mobileFilterOpen
+                ? 'bg-[#C6FF1E] text-black border border-[#C6FF1E]'
+                : 'bg-white text-[#1A1A1A] border border-gray-200'
+            }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
             Filter
           </button>
           <button
             onClick={() => setMobileSortOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-3 text-sm font-semibold text-[#1A1A1A] cursor-pointer"
+            className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold cursor-pointer transition-all
+            ${
+              mobileSortOpen
+                ? 'bg-[#C6FF1E] text-black border border-[#C6FF1E]'
+                : 'bg-white text-[#1A1A1A] border border-gray-200'
+            }`}
           >
             <ArrowUpDown className="w-4 h-4" />
             Sort
@@ -456,7 +472,7 @@ const filtered = useMemo(() => {
         }
       >
         <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-bold text-[#1A1A1A]">Category</p>
+          <p className="text-sm font-bold text-white">Category</p>
         </div>
         <CategoryList />
 
@@ -499,7 +515,7 @@ const filtered = useMemo(() => {
                   onChange={() => toggleBrand(brand)}
                   className="accent-[#C6FF1E] w-4 h-4 shrink-0"
                 />
-                <span className="text-sm text-gray-600">{brand}</span>
+                <span className="text-sm text-gray-300">{brand}</span>
               </label>
             ))}
           </div>
@@ -527,7 +543,7 @@ const filtered = useMemo(() => {
               onClick={() => setSort(o.value)}
               className="flex items-center justify-between py-3.5 border-b border-gray-50 last:border-0 cursor-pointer"
             >
-              <span className={`text-sm ${sort === o.value ? 'font-semibold text-[#1A1A1A]' : 'text-gray-600'}`}>
+              <span className={`text-sm ${sort === o.value ? 'font-semibold text-white' : 'text-gray-300'}`}>
                 {o.label}
               </span>
               <span className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
