@@ -478,7 +478,7 @@ const filtered = useMemo(() => {
 
         <div className="border-t border-gray-100 my-5" />
 
-        <p className="text-sm font-bold text-[#1A1A1A] mb-3">Price Range</p>
+        <p className="text-sm font-bold text-white mb-3">Price Range</p>
         <p className="text-xs text-gray-400 mb-2">Up to ₹{priceMax.toLocaleString()}</p>
         <input
           type="range" min={100} max={20000} step={100}
