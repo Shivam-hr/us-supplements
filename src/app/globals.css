@@ -62,3 +62,20 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Product gallery — small pill dots instead of arrow icons, matching the homepage banner style */
+.product-gallery-swiper .swiper-pagination {
+  bottom: 8px !important;
+}
+.product-gallery-swiper .swiper-pagination-bullet {
+  width: 16px;
+  height: 6px;
+  border-radius: 999px;
+  background: #E5E7EB;
+  opacity: 1;
+  transition: all 0.2s;
+}
+.product-gallery-swiper .swiper-pagination-bullet-active {
+  width: 24px;
+  background: #101214;
+}

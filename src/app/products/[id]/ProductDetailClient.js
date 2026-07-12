@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
@@ -7,13 +7,13 @@ import { useCart } from '../../../context/CartContext'
 import ProductCard from '../../../Components/ProductCard'
 import LoginRequiredModal from '../../../Components/LoginRequiredModal'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Navigation } from 'swiper/modules'
+import { Pagination } from 'swiper/modules'
 import 'swiper/css'
-import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 import {
   ShieldCheck, Lock, RotateCcw, Headphones, Minus, Plus,
   ShoppingCart, CheckCircle2, XCircle, MapPin,
-  Star, ChevronDown, ThumbsUp, Clock,
+  Star, ChevronDown, ThumbsUp, Clock, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 
 const stackCategories = ['Pre-Workout', 'Creatine', 'BCAA', 'Vitamins']
@@ -53,6 +53,8 @@ export default function ProductDetailClient({ id }) {
   const [pincode, setPincode] = useState('')
   const [pincodeStatus, setPincodeStatus] = useState(null) // null | 'ok' | 'invalid'
   const [descOpen, setDescOpen] = useState(true)
+  const relatedSwiperRef = useRef(null)
+  const trendingSwiperRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -199,27 +201,27 @@ export default function ProductDetailClient({ id }) {
       </div>
 
       {/* HERO */}
-      <div className="px-6 lg:px-16 py-2 grid grid-cols-1 lg:grid-cols-[45%_55%] gap-6">
+      <div className="py-2 grid grid-cols-1 lg:grid-cols-[45%_55%] gap-6 lg:px-16">
 
-        {/* Gallery card */}
+        {/* Gallery — edge-to-edge on mobile, no card box, no arrow icons, dot pagination like the homepage banner */}
         <div className="flex flex-col gap-4">
           <div
-            className="bg-white flex items-center justify-center rounded-[24px] p-6 min-h-[320px] lg:rounded-[32px] lg:p-10 lg:min-h-[440px]"
+            className="bg-white flex items-center justify-center min-h-[320px] lg:rounded-[32px] lg:p-10 lg:min-h-[440px]"
           >
             {product.images && product.images.length > 0 ? (
               <Swiper
-                modules={[Navigation]}
-                navigation
-                spaceBetween={10}
+                modules={[Pagination]}
+                pagination={{ clickable: true }}
+                spaceBetween={0}
                 slidesPerView={1}
-                className="w-full h-[240px] lg:h-[380px] product-gallery-swiper"
+                className="w-full h-[320px] lg:h-[380px] product-gallery-swiper"
               >
                 {product.images.map((url, i) => (
                   <SwiperSlide key={i} className="flex items-center justify-center">
                     <img
                       src={url}
                       alt={`${product.name} - view ${i + 1}`}
-                      className="max-h-[240px] lg:max-h-[380px] w-full object-contain"
+                      className="max-h-[320px] lg:max-h-[380px] w-full object-contain"
                     />
                   </SwiperSlide>
                 ))}
@@ -228,13 +230,13 @@ export default function ProductDetailClient({ id }) {
               <img
                 src={product.image}
                 alt={product.name}
-                className="max-h-[240px] lg:max-h-[380px] w-full object-contain"
+                className="max-h-[320px] lg:max-h-[380px] w-full object-contain"
               />
             )}
           </div>
 
           {!product.in_stock && (
-            <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-center">
+            <div className="mx-4 lg:mx-0 bg-red-50 border border-red-100 rounded-2xl px-4 py-3 text-center">
               <p className="text-red-500 font-semibold text-sm">Currently out of stock</p>
               <p className="text-red-400 text-xs mt-0.5">Check back soon or browse similar products below</p>
             </div>
@@ -242,7 +244,7 @@ export default function ProductDetailClient({ id }) {
         </div>
 
         {/* Product info card */}
-        <div className="bg-white flex flex-col gap-4 lg:gap-5 rounded-[24px] p-6 lg:rounded-[32px] lg:p-10">
+        <div className="bg-white flex flex-col gap-3.5 lg:gap-5 px-4 py-5 lg:rounded-[32px] lg:p-10">
 
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="text-sm lg:text-lg font-medium" style={{ color: '#6B7280' }}>
@@ -312,7 +314,7 @@ export default function ProductDetailClient({ id }) {
                   <button
                     key={w}
                     onClick={() => goToWeight(w)}
-                    className={`h-11 px-4 rounded-[14px] text-sm font-bold border transition-colors ${
+                    className={`h-9 px-3 rounded-[10px] text-xs font-bold border transition-colors ${
                       w === product.weight
                         ? 'bg-[#101214] text-[#B7FF1E] border-[#101214]'
                         : 'bg-white text-[#161616] border-[#E5E7EB] hover:border-[#B7FF1E]'
@@ -331,13 +333,13 @@ export default function ProductDetailClient({ id }) {
               <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wide mb-2">
                 Flavour: <span className="text-[#161616]">{product.variant_label}</span>
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {flavoursAtCurrentWeight.map(v => (
                   <button
                     key={v.id}
                     onClick={() => goToVariant(v.id)}
                     disabled={!v.in_stock}
-                    className={`h-11 px-4 rounded-[14px] text-sm font-bold border transition-colors ${
+                    className={`h-9 px-3 rounded-[10px] text-xs font-bold border transition-colors ${
                       v.id === product.id
                         ? 'bg-[#101214] text-[#B7FF1E] border-[#101214]'
                         : v.in_stock
@@ -457,17 +459,16 @@ export default function ProductDetailClient({ id }) {
             </div>
           </div>
 
-          {/* CTA buttons — hidden on mobile, sticky bar takes over there */}
+          {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => handleAddToCart(product, quantity)}
               disabled={!product.in_stock}
-              className={`flex-1 font-bold text-base transition-all flex items-center justify-center gap-2 ${
-                product.in_stock
-                  ? 'bg-[#B7FF1E] text-[#101214] hover:bg-[#C8FF4A] cursor-pointer'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-              style={{ height: '58px', borderRadius: '16px' }}
+              className={`flex-1 font-bold text-sm lg:text-base transition-all flex items-center justify-center gap-2 h-12 lg:h-16 rounded-2xl ${
+              product.in_stock
+                ? 'bg-[#B7FF1E] text-[#101214] hover:bg-[#C8FF4A] cursor-pointer'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
             >
               <ShoppingCart className="w-5 h-5" />
               Add to Cart
@@ -475,12 +476,11 @@ export default function ProductDetailClient({ id }) {
             <button
               onClick={() => handleBuyNow(product, quantity)}
               disabled={!product.in_stock}
-              className={`flex-1 font-bold text-base transition-all ${
-                product.in_stock
-                  ? 'bg-[#101214] text-white hover:bg-[#17191C] cursor-pointer'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-              style={{ height: '58px', borderRadius: '16px' }}
+              className={`flex-1 font-bold text-sm lg:text-base transition-all h-12 lg:h-16 rounded-2xl ${
+              product.in_stock
+                ? 'bg-[#101214] text-white hover:bg-[#17191C] cursor-pointer'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
             >
               Buy Now
             </button>
@@ -588,26 +588,46 @@ export default function ProductDetailClient({ id }) {
       {/* YOU MAY ALSO LIKE */}
       {relatedProducts.length > 0 && (
         <div className="py-10 lg:py-14 bg-white">
-          <div className="px-6 lg:px-16">
-            <div className="flex items-center justify-between mb-6 lg:mb-8">
-              <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>You May Also Like</h2>
-              <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors flex items-center gap-1">
-                See All →
-              </Link>
-            </div>
+          <div className="px-4 lg:px-16 flex items-center justify-between mb-6 lg:mb-8">
+            <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>You May Also Like</h2>
+            <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors flex items-center gap-1">
+              See All →
+            </Link>
+          </div>
+          <div className="relative px-4 lg:px-16">
+            <button
+              onClick={() => relatedSwiperRef.current?.slidePrev()}
+              aria-label="Previous products"
+              className="hidden md:flex absolute left-2 top-[38%] -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-[#E5E7EB] items-center justify-center text-[#161616] shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:border-[#B7FF1E] transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" strokeWidth={2.5} />
+            </button>
+
             <Swiper
-              className="you-may-like-swiper px-1 py-2"
-              modules={[Navigation]}
-              navigation
-              spaceBetween={16}
-              slidesPerView="auto"
+              className="you-may-like-swiper"
+              onSwiper={swiper => (relatedSwiperRef.current = swiper)}
+              spaceBetween={14}
+              breakpoints={{
+                320: { slidesPerView: 1.7 },
+                480: { slidesPerView: 2.2 },
+                768: { slidesPerView: 3.2 },
+                1024: { slidesPerView: 4.5 },
+              }}
             >
               {relatedProducts.map(p => (
-                <SwiperSlide key={p.id} style={{ width: '190px' }}>
-                  <ProductCard product={p} showBrand compact />
+                <SwiperSlide key={p.id}>
+                  <ProductCard product={p} showBrand />
                 </SwiperSlide>
               ))}
             </Swiper>
+
+            <button
+              onClick={() => relatedSwiperRef.current?.slideNext()}
+              aria-label="Next products"
+              className="hidden md:flex absolute right-2 top-[38%] -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-[#E5E7EB] items-center justify-center text-[#161616] shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:border-[#B7FF1E] transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" strokeWidth={2.5} />
+            </button>
           </div>
         </div>
       )}
@@ -639,26 +659,46 @@ export default function ProductDetailClient({ id }) {
       {/* TRENDING NOW */}
       {trendingProducts.length > 0 && (
         <div className="py-10 lg:py-14" style={{ backgroundColor: '#F8F6F1' }}>
-          <div className="px-6 lg:px-16">
-            <div className="flex items-center justify-between mb-6 lg:mb-8">
-              <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>Trending Now</h2>
-              <Link href="/products" className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors">
-                See All →
-              </Link>
-            </div>
+          <div className="px-4 lg:px-16 flex items-center justify-between mb-6 lg:mb-8">
+            <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>Trending Now</h2>
+            <Link href="/products" className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors">
+              See All →
+            </Link>
+          </div>
+          <div className="relative px-4 lg:px-16">
+            <button
+              onClick={() => trendingSwiperRef.current?.slidePrev()}
+              aria-label="Previous products"
+              className="hidden md:flex absolute left-2 top-[38%] -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-[#E5E7EB] items-center justify-center text-[#161616] shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:border-[#B7FF1E] transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" strokeWidth={2.5} />
+            </button>
+
             <Swiper
-              className="trending-swiper px-1 py-2"
-              modules={[Navigation]}
-              navigation
-              spaceBetween={16}
-              slidesPerView="auto"
+              className="trending-now-swiper"
+              onSwiper={swiper => (trendingSwiperRef.current = swiper)}
+              spaceBetween={14}
+              breakpoints={{
+                320: { slidesPerView: 1.7 },
+                480: { slidesPerView: 2.2 },
+                768: { slidesPerView: 3.2 },
+                1024: { slidesPerView: 4.5 },
+              }}
             >
               {trendingProducts.map(p => (
-                <SwiperSlide key={p.id} style={{ width: '190px' }}>
-                  <ProductCard product={p} showBrand compact />
+                <SwiperSlide key={p.id}>
+                  <ProductCard product={p} showBrand />
                 </SwiperSlide>
               ))}
             </Swiper>
+
+            <button
+              onClick={() => trendingSwiperRef.current?.slideNext()}
+              aria-label="Next products"
+              className="hidden md:flex absolute right-2 top-[38%] -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-[#E5E7EB] items-center justify-center text-[#161616] shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:border-[#B7FF1E] transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" strokeWidth={2.5} />
+            </button>
           </div>
         </div>
       )}
