@@ -495,7 +495,7 @@ const filtered = useMemo(() => {
             onChange={e => setInStockOnly(e.target.checked)}
             className="accent-[#C6FF1E] w-4 h-4"
           />
-          <span className="text-sm text-[#1A1A1A] font-medium">In stock only</span>
+          <span className="text-sm text-white font-medium">In stock only</span>
         </label>
 
         <div className="border-t border-gray-100 my-5" />
@@ -504,7 +504,7 @@ const filtered = useMemo(() => {
           onClick={() => setBrandsExpanded(!brandsExpanded)}
           className="w-full flex items-center justify-between mb-3 cursor-pointer"
         >
-          <p className="text-sm font-bold text-[#1A1A1A]">Brands</p>
+          <p className="text-sm font-bold text-white">Brands</p>
           {brandsExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
         </button>
         {brandsExpanded && (
