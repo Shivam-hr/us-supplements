@@ -12,23 +12,10 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import {
   ShieldCheck, Lock, RotateCcw, Headphones, Minus, Plus,
-  ShoppingCart, ChevronLeft, ChevronRight, CheckCircle2, XCircle, MapPin,
+  ShoppingCart, CheckCircle2, XCircle, MapPin,
   Star, ChevronDown, ThumbsUp, Clock,
 } from 'lucide-react'
 
-// Which categories tend to get bought alongside each category — used to build
-// the "Frequently Bought Together" bundle. Falls back to Accessories/Vitamins
-// for anything not listed, and to same-category-different-brand if a category
-// has no matching complementary stock at all.
-const complementMap = {
-  'Whey Protein': ['Creatine', 'Accessories'],
-  'Mass Gainer': ['Creatine', 'Accessories'],
-  'Pre-Workout': ['BCAA', 'Accessories'],
-  'Creatine': ['Whey Protein', 'Accessories'],
-  'BCAA': ['Whey Protein', 'Creatine'],
-  'Vitamins': ['Whey Protein', 'Accessories'],
-}
-const defaultComplements = ['Accessories', 'Vitamins']
 const stackCategories = ['Pre-Workout', 'Creatine', 'BCAA', 'Vitamins']
 
 export default function ProductDetailClient({ id }) {
@@ -59,7 +46,6 @@ export default function ProductDetailClient({ id }) {
   const [product, setProduct] = useState(null)
   const [variantSiblings, setVariantSiblings] = useState([])
   const [relatedProducts, setRelatedProducts] = useState([])
-  const [bundleSlots, setBundleSlots] = useState([])
   const [stackItems, setStackItems] = useState([])
   const [trendingProducts, setTrendingProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -108,38 +94,6 @@ export default function ProductDetailClient({ id }) {
         .neq('id', prod.id)
         .limit(8)
       if (active) setRelatedProducts(related || [])
-
-      // Frequently Bought Together — complementary categories, same brand preferred
-      const categories = complementMap[prod.category] || defaultComplements
-      const slots = []
-      for (const cat of categories) {
-        const { data } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category', cat)
-          .eq('in_stock', true)
-          .limit(10)
-        if (data && data.length) {
-          const sorted = [...data].sort(
-            (a, b) => (b.brand === prod.brand ? 1 : 0) - (a.brand === prod.brand ? 1 : 0)
-          )
-          slots.push({ category: cat, candidates: sorted, index: 0 })
-        }
-      }
-      if (slots.length === 0) {
-        const { data } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category', prod.category)
-          .eq('in_stock', true)
-          .neq('brand', prod.brand)
-          .neq('id', prod.id)
-          .limit(10)
-        if (data && data.length) {
-          slots.push({ category: prod.category, candidates: data, index: 0 })
-        }
-      }
-      if (active) setBundleSlots(slots)
 
       // Complete Your Stack — one representative product per category
       const stackResults = []
@@ -226,31 +180,12 @@ export default function ProductDetailClient({ id }) {
     goToVariant((sameFlavour || fallback)?.id)
   }
 
-  const cycleSlot = (slotIdx, direction) => {
-    setBundleSlots(prev => prev.map((s, i) => {
-      if (i !== slotIdx) return s
-      const len = s.candidates.length
-      return { ...s, index: (s.index + direction + len) % len }
-    }))
-  }
-
-  const bundleItems = bundleSlots.map(s => s.candidates[s.index])
-  const bundleRawTotal = product.price + bundleItems.reduce((sum, p) => sum + p.price, 0)
-  const bundlePrice = Math.round(bundleRawTotal * 0.85)
-  const bundleSavings = bundleRawTotal - bundlePrice
-
-  const addBundleToCart = async () => {
-    if (!(await requireLogin())) return
-    addToCart(product, 1)
-    bundleItems.forEach(p => addToCart(p, 1))
-  }
-
   const checkPincode = () => {
     setPincodeStatus(/^\d{6}$/.test(pincode) ? 'ok' : 'invalid')
   }
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-16" style={{ backgroundColor: '#F7F8FA' }}>
+    <div className="min-h-screen pb-10 lg:pb-16" style={{ backgroundColor: '#F7F8FA' }}>
 
       {/* Breadcrumb */}
       <div className="px-6 lg:px-16 py-4 flex items-center gap-2 text-sm text-gray-400 flex-wrap">
@@ -338,7 +273,7 @@ export default function ProductDetailClient({ id }) {
             </span>
           </div>
 
-          <h1 className="text-[28px] lg:text-[42px] font-bold leading-[1.2]" style={{ color: '#161616' }}>
+          <h1 className="text-[20px] sm:text-[24px] lg:text-[42px] font-bold leading-[1.25]" style={{ color: '#161616' }}>
             {product.name}
           </h1>
 
@@ -432,16 +367,16 @@ export default function ProductDetailClient({ id }) {
             </div>
           )}
 
-          <div className="flex items-baseline gap-3 lg:gap-4 flex-wrap">
-            <span className="text-[32px] lg:text-[42px] font-extrabold" style={{ color: '#161616' }}>
+          <div className="flex items-baseline gap-2.5 lg:gap-4 flex-wrap">
+            <span className="text-[24px] sm:text-[28px] lg:text-[42px] font-extrabold" style={{ color: '#161616' }}>
               ₹{product.price.toLocaleString()}
             </span>
             {discount > 0 && (
               <>
-                <span className="text-lg lg:text-[22px]" style={{ color: '#9CA3AF', textDecoration: 'line-through' }}>
+                <span className="text-sm sm:text-base lg:text-[22px]" style={{ color: '#9CA3AF', textDecoration: 'line-through' }}>
                   ₹{product.mrp.toLocaleString()}
                 </span>
-                <span className="text-sm lg:text-lg font-bold" style={{ color: '#22C55E' }}>
+                <span className="text-xs sm:text-sm lg:text-lg font-bold" style={{ color: '#22C55E' }}>
                   {discount}% OFF
                 </span>
               </>
@@ -523,7 +458,7 @@ export default function ProductDetailClient({ id }) {
           </div>
 
           {/* CTA buttons — hidden on mobile, sticky bar takes over there */}
-          <div className="hidden lg:flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => handleAddToCart(product, quantity)}
               disabled={!product.in_stock}
@@ -551,32 +486,6 @@ export default function ProductDetailClient({ id }) {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Sticky mobile Add to Cart bar */}
-      <div
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex gap-3 p-3"
-        style={{ backgroundColor: '#17191C' }}
-      >
-        <button
-          onClick={() => handleAddToCart(product, quantity)}
-          disabled={!product.in_stock}
-          className={`flex-1 font-bold text-sm flex items-center justify-center gap-2 ${
-            product.in_stock ? 'bg-[#B7FF1E] text-[#101214] cursor-pointer' : 'bg-gray-600 text-gray-300 cursor-not-allowed'
-          }`}
-          style={{ height: '52px', borderRadius: '16px' }}
-        >
-          <ShoppingCart className="w-4 h-4" />
-          Add to Cart
-        </button>
-        <button
-          onClick={() => handleBuyNow(product, quantity)}
-          disabled={!product.in_stock}
-          className={`flex-1 font-bold text-sm ${product.in_stock ? 'bg-white text-[#101214] cursor-pointer' : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
-          style={{ height: '52px', borderRadius: '16px' }}
-        >
-          Buy Now
-        </button>
       </div>
 
       {/* TRUST BAR */}
@@ -676,80 +585,38 @@ export default function ProductDetailClient({ id }) {
         </div>
       </div>
 
-      {/* FREQUENTLY BOUGHT TOGETHER */}
-      {bundleSlots.length > 0 && (
-        <div className="py-14" style={{ backgroundColor: '#F8F6F1' }}>
-          <div className="px-6 lg:px-16 max-w-5xl mx-auto">
-            <div className="flex items-center gap-3 mb-8 flex-wrap">
-              <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>Frequently Bought Together</h2>
-              <span className="bg-[#B7FF1E] text-[#101214] text-xs font-bold px-3 py-1 rounded-full">SAVE 15%</span>
-            </div>
-
-            <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-4">
-              <div className="flex items-center gap-4 flex-wrap justify-center flex-1">
-
-                <BundleItem product={product} />
-
-                {bundleSlots.map((slot, i) => (
-                  <div key={slot.category} className="flex items-center gap-4">
-                    <span className="text-2xl font-bold text-[#9CA3AF]">+</span>
-                    <BundleItem
-                      product={slot.candidates[slot.index]}
-                      onPrev={slot.candidates.length > 1 ? () => cycleSlot(i, -1) : null}
-                      onNext={slot.candidates.length > 1 ? () => cycleSlot(i, 1) : null}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-white rounded-[24px] p-6 flex flex-col gap-3 w-full lg:w-64 shrink-0" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}>
-                <div className="flex justify-between text-sm text-[#6B7280]">
-                  <span>Total Price</span>
-                  <span className="line-through">₹{bundleRawTotal.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold text-[#161616]">
-                  <span>You Pay</span>
-                  <span>₹{bundlePrice.toLocaleString()}</span>
-                </div>
-                <div className="text-xs font-semibold" style={{ color: '#22C55E' }}>
-                  You Save ₹{bundleSavings.toLocaleString()} (15%)
-                </div>
-                <button
-                  onClick={addBundleToCart}
-                  className="mt-2 bg-[#101214] text-white font-bold text-sm py-3.5 rounded-2xl hover:bg-[#17191C] transition-colors cursor-pointer"
-                >
-                  Add Bundle to Cart
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* YOU MAY ALSO LIKE */}
       {relatedProducts.length > 0 && (
-        <div className="py-14 bg-white">
+        <div className="py-10 lg:py-14 bg-white">
           <div className="px-6 lg:px-16">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6 lg:mb-8">
               <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>You May Also Like</h2>
               <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors flex items-center gap-1">
                 See All →
               </Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-              {relatedProducts.slice(0, 5).map(p => (
-                <ProductCard key={p.id} product={p} showBrand />
+            <Swiper
+              className="you-may-like-swiper px-1 py-2"
+              modules={[Navigation]}
+              navigation
+              spaceBetween={16}
+              slidesPerView="auto"
+            >
+              {relatedProducts.map(p => (
+                <SwiperSlide key={p.id} style={{ width: '190px' }}>
+                  <ProductCard product={p} showBrand compact />
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
           </div>
         </div>
       )}
 
       {/* COMPLETE YOUR STACK */}
       {stackItems.length > 0 && (
-        <div className="py-14 bg-white">
+        <div className="py-10 lg:py-14 bg-white">
           <div className="px-6 lg:px-16">
-            <h2 className="text-[24px] lg:text-[32px] font-bold mb-8" style={{ color: '#161616' }}>
+            <h2 className="text-[24px] lg:text-[32px] font-bold mb-6 lg:mb-8" style={{ color: '#161616' }}>
               Complete Your Stack
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
@@ -771,9 +638,9 @@ export default function ProductDetailClient({ id }) {
 
       {/* TRENDING NOW */}
       {trendingProducts.length > 0 && (
-        <div className="py-14" style={{ backgroundColor: '#F8F6F1' }}>
+        <div className="py-10 lg:py-14" style={{ backgroundColor: '#F8F6F1' }}>
           <div className="px-6 lg:px-16">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6 lg:mb-8">
               <h2 className="text-[24px] lg:text-[32px] font-bold" style={{ color: '#161616' }}>Trending Now</h2>
               <Link href="/products" className="text-sm font-semibold text-[#161616] hover:text-[#6B7280] transition-colors">
                 See All →
@@ -783,16 +650,12 @@ export default function ProductDetailClient({ id }) {
               className="trending-swiper px-1 py-2"
               modules={[Navigation]}
               navigation
-              spaceBetween={20}
-              slidesPerView={2}
-              breakpoints={{
-                640: { slidesPerView: 3 },
-                1024: { slidesPerView: 5 },
-              }}
+              spaceBetween={16}
+              slidesPerView="auto"
             >
               {trendingProducts.map(p => (
-                <SwiperSlide key={p.id}>
-                  <ProductCard product={p} showBrand />
+                <SwiperSlide key={p.id} style={{ width: '190px' }}>
+                  <ProductCard product={p} showBrand compact />
                 </SwiperSlide>
               ))}
             </Swiper>
@@ -802,27 +665,6 @@ export default function ProductDetailClient({ id }) {
 
       <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
 
-    </div>
-  )
-}
-
-function BundleItem({ product, onPrev, onNext }) {
-  if (!product) return null
-  return (
-    <div className="bg-white rounded-2xl p-4 w-36 flex flex-col items-center gap-2 relative" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}>
-      {onPrev && (
-        <button onClick={onPrev} className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full flex items-center justify-center border border-[#E5E7EB] hover:bg-[#B7FF1E] transition-colors z-10">
-          <ChevronLeft className="w-3.5 h-3.5" />
-        </button>
-      )}
-      <img src={product.image} alt={product.name} className="h-20 w-full object-contain" />
-      <p className="text-xs font-semibold text-[#161616] text-center leading-snug line-clamp-2">{product.name}</p>
-      <p className="text-xs font-bold text-[#161616]">₹{product.price.toLocaleString()}</p>
-      {onNext && (
-        <button onClick={onNext} className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full flex items-center justify-center border border-[#E5E7EB] hover:bg-[#B7FF1E] transition-colors z-10">
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      )}
     </div>
   )
 }

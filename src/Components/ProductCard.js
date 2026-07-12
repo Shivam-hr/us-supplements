@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext'
 import { supabase } from '../lib/supabase'
 import LoginRequiredModal from './LoginRequiredModal'
 
-export default function ProductCard({ product, showBrand }) {
+export default function ProductCard({ product, showBrand, compact }) {
   const discount = Math.round((product.mrp - product.price) / product.mrp * 100)
   const { addToCart } = useCart()
   const [showLoginModal, setShowLoginModal] = useState(false)
@@ -27,13 +27,13 @@ export default function ProductCard({ product, showBrand }) {
   return (
     <>
       <Link href={`/products/${product.id}`}>
-        <div className="bg-white rounded-[24px] p-4 cursor-pointer group transition-all duration-300 hover:-translate-y-2.5"
+        <div className={`bg-white rounded-[24px] cursor-pointer group transition-all duration-300 hover:-translate-y-2.5 ${compact ? 'p-3' : 'p-4'}`}
           style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}
           onMouseEnter={e => e.currentTarget.style.boxShadow = '0 25px 50px rgba(0,0,0,0.12)'}
           onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.06)'}
         >
           <div
-            className="h-52 w-full rounded-2xl mb-4 flex items-center justify-center p-3"
+            className={`w-full rounded-2xl flex items-center justify-center p-3 ${compact ? 'h-28 mb-3' : 'h-52 mb-4'}`}
             style={{ background: 'linear-gradient(180deg, #FFFFFF, #F8F6F1)' }}
           >
             <img
@@ -53,7 +53,7 @@ export default function ProductCard({ product, showBrand }) {
             </span>
           )}
 
-          <p className="text-sm font-semibold text-[#161616] mb-2 leading-snug line-clamp-2">{product.name}</p>
+          <p className={`text-sm font-semibold text-[#161616] leading-snug line-clamp-2 ${compact ? 'mb-1.5' : 'mb-2'}`}>{product.name}</p>
 
           {product.rating && (
             <div className="flex items-center gap-1 mb-2">
@@ -65,7 +65,7 @@ export default function ProductCard({ product, showBrand }) {
             </div>
           )}
 
-          <div className="flex items-baseline gap-2 mb-4">
+          <div className={`flex items-baseline gap-2 ${compact ? 'mb-3' : 'mb-4'}`}>
             <span className="text-base font-bold text-[#161616]">₹{product.price.toLocaleString()}</span>
             {product.mrp > product.price && (
               <>
@@ -78,7 +78,7 @@ export default function ProductCard({ product, showBrand }) {
           <button
             onClick={handleAddToCart}
             className="w-full bg-[#B7FF1E] hover:bg-[#C8FF4A] text-[#101214] text-sm font-semibold rounded-[14px] transition-colors flex items-center justify-center gap-2 cursor-pointer"
-            style={{ height: '48px' }}
+            style={{ height: compact ? '42px' : '48px' }}
           >
             <ShoppingCart className="w-4 h-4" strokeWidth={2} />
             Add to Cart
