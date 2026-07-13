@@ -3,6 +3,7 @@ import Link from 'next/link'
 import './globals.css'
 import Navbar from '../Components/Navbar'
 import { CartProvider } from '../context/CartContext'
+import { WishlistProvider } from '../context/WishlistContext'
 
 const geist = Geist({ subsets: ['latin'] })
 
@@ -16,14 +17,15 @@ export default function RootLayout({ children }) {
     <html lang="en" className="scroll-smooth" style={{ fontSize: '16px' }}>
       <body className={`${geist.className} bg-white text-[#1A1A1A]`}>
         <CartProvider>
+        <WishlistProvider>
           <Navbar />
           {children}
-          <footer className="bg-[#1A1A1A] text-gray-400 mt-16 px-10 py-12">
+          <footer className="bg-[#1A1A1A] text-gray-400 mt-16 px-6 py-10 md:px-10 md:py-12">
             <div className="flex items-center gap-2 mb-8">
               <div className="bg-[#C6FF1E] text-[#1A1A1A] font-bold px-2.5 py-1 rounded text-sm">US</div>
               <span className="text-white font-bold text-lg">Supplements</span>
             </div>
-            <div className="grid grid-cols-4 gap-10 text-sm">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 md:gap-10 text-sm">
               <div>
                 <p className="text-white font-semibold mb-4">Company</p>
                 <div className="flex flex-col gap-3">
@@ -60,7 +62,7 @@ export default function RootLayout({ children }) {
             <div className="border-t border-gray-800 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-center">
               <span>© 2026 US Supplements. All rights reserved.</span>
               <span className="hidden sm:inline text-gray-700">•</span>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap justify-center">
                 <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
                 <span className="text-gray-700">•</span>
                 <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
@@ -69,6 +71,7 @@ export default function RootLayout({ children }) {
               </div>
             </div>
           </footer>
+        </WishlistProvider>
         </CartProvider>
       </body>
     </html>

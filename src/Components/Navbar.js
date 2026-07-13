@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -15,6 +16,7 @@ const searchPlaceholders = [
 
 export default function Navbar() {
   const { totalItems } = useCart()
+  const { totalWishlist } = useWishlist()
   const [user, setUser] = useState(null)
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
@@ -237,11 +239,16 @@ export default function Navbar() {
             </Link>
           )}
 
-          <Link href="/wishlist" className="flex flex-col items-center gap-1 hover:text-[#C6FF1E] transition-colors group">
+          <Link href="/wishlist" className="flex flex-col items-center gap-1 relative hover:text-[#C6FF1E] transition-colors group">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
             <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 group-hover:text-[#C6FF1E]">Wishlist</span>
+            {totalWishlist > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 bg-[#C6FF1E] text-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-black">
+                {totalWishlist}
+              </span>
+            )}
           </Link>
 
           <Link href="/cart" className="flex flex-col items-center gap-1 relative hover:text-[#C6FF1E] transition-colors group">

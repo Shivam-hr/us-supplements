@@ -1,15 +1,18 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Star, ShoppingCart } from 'lucide-react'
+import { Star, ShoppingCart, Heart } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 import { supabase } from '../lib/supabase'
 import LoginRequiredModal from './LoginRequiredModal'
 
 export default function ProductCard({ product, showBrand, compact }) {
   const discount = Math.round((product.mrp - product.price) / product.mrp * 100)
   const { addToCart } = useCart()
+  const { isInWishlist, toggleWishlist } = useWishlist()
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const saved = isInWishlist(product.id)
 
   const handleAddToCart = async (e) => {
     e.preventDefault()
@@ -24,6 +27,19 @@ export default function ProductCard({ product, showBrand, compact }) {
     addToCart(product, 1)
   }
 
+  const handleToggleWishlist = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setShowLoginModal(true)
+      return
+    }
+
+    toggleWishlist(product)
+  }
+
   return (
     <>
       <Link href={`/products/${product.id}`}>
@@ -33,9 +49,20 @@ export default function ProductCard({ product, showBrand, compact }) {
           onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.06)'}
         >
           <div
-            className={`w-full rounded-2xl flex items-center justify-center p-3 ${compact ? 'h-28 mb-3' : 'h-52 mb-4'}`}
+            className={`relative w-full rounded-2xl flex items-center justify-center p-3 ${compact ? 'h-28 mb-3' : 'h-52 mb-4'}`}
             style={{ background: 'linear-gradient(180deg, #FFFFFF, #F8F6F1)' }}
           >
+            <button
+              onClick={handleToggleWishlist}
+              aria-label={saved ? 'Remove from wishlist' : 'Add to wishlist'}
+              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform z-10"
+            >
+              <Heart
+                className="w-4 h-4"
+                style={{ fill: saved ? '#EF4444' : 'none', color: saved ? '#EF4444' : '#6B7280' }}
+                strokeWidth={2}
+              />
+            </button>
             <img
               src={product.image}
               alt={product.name}

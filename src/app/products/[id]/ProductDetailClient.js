@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { useCart } from '../../../context/CartContext'
+import { useWishlist } from '../../../context/WishlistContext'
 import ProductCard from '../../../Components/ProductCard'
 import LoginRequiredModal from '../../../Components/LoginRequiredModal'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -13,13 +14,14 @@ import 'swiper/css/pagination'
 import {
   ShieldCheck, Lock, RotateCcw, Headphones, Minus, Plus,
   ShoppingCart, CheckCircle2, XCircle, MapPin,
-  Star, ChevronDown, ThumbsUp, Clock, ChevronLeft, ChevronRight,
+  Star, ChevronDown, ThumbsUp, Clock, ChevronLeft, ChevronRight, Heart,
 } from 'lucide-react'
 
 const stackCategories = ['Pre-Workout', 'Creatine', 'BCAA', 'Vitamins']
 
 export default function ProductDetailClient({ id }) {
   const { addToCart } = useCart()
+  const { isInWishlist, toggleWishlist } = useWishlist()
   const router = useRouter()
   const [showLoginModal, setShowLoginModal] = useState(false)
 
@@ -41,6 +43,11 @@ export default function ProductDetailClient({ id }) {
     if (!(await requireLogin())) return
     addToCart(prod, qty)
     router.push('/checkout')
+  }
+
+  const handleToggleWishlist = async (prod) => {
+    if (!(await requireLogin())) return
+    toggleWishlist(prod)
   }
 
   const [product, setProduct] = useState(null)
@@ -206,8 +213,19 @@ export default function ProductDetailClient({ id }) {
         {/* Gallery — edge-to-edge on mobile, no card box, no arrow icons, dot pagination like the homepage banner */}
         <div className="flex flex-col gap-4">
           <div
-            className="bg-white flex items-center justify-center min-h-[320px] lg:rounded-[32px] lg:p-10 lg:min-h-[440px]"
+            className="relative bg-white flex items-center justify-center min-h-[320px] lg:rounded-[32px] lg:p-10 lg:min-h-[440px]"
           >
+            <button
+              onClick={() => handleToggleWishlist(product)}
+              aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+              className="absolute top-4 right-4 lg:top-6 lg:right-6 w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md hover:scale-110 transition-transform z-10"
+            >
+              <Heart
+                className="w-5 h-5"
+                style={{ fill: isInWishlist(product.id) ? '#EF4444' : 'none', color: isInWishlist(product.id) ? '#EF4444' : '#6B7280' }}
+                strokeWidth={2}
+              />
+            </button>
             {product.images && product.images.length > 0 ? (
               <Swiper
                 modules={[Pagination]}
