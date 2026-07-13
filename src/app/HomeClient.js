@@ -70,48 +70,89 @@ function Hero() {
   }, [])
 
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: '480px' }}>
-      {banners.map((banner, i) => (
-        <div
-          key={banner.id}
-          className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'}`}
-        >
-          <img
-            src={banner.image}
-            alt={banner.alt}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ))}
-
-      {/* Dot indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {banners.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            aria-label={`Show banner ${i + 1}`}
-            className={`h-1.5 rounded-full transition-all ${i === current ? 'w-6 bg-[#B7FF1E]' : 'w-4 bg-white/50'}`}
-          />
+    <>
+      {/* ============ DESKTOP HERO (unchanged) ============ */}
+      <div className="relative w-full overflow-hidden hidden lg:block" style={{ height: '480px' }}>
+        {banners.map((banner, i) => (
+          <div
+            key={banner.id}
+            className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <img
+              src={banner.image}
+              alt={banner.alt}
+              className="w-full h-full object-cover"
+            />
+          </div>
         ))}
+
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {banners.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              aria-label={`Show banner ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${i === current ? 'w-6 bg-[#B7FF1E]' : 'w-4 bg-white/50'}`}
+            />
+          ))}
+        </div>
+
+        <button
+          onClick={() => setCurrent(prev => (prev - 1 + banners.length) % banners.length)}
+          aria-label="Previous banner"
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all"
+        >
+          <ChevronLeft className="w-5 h-5" strokeWidth={2} />
+        </button>
+        <button
+          onClick={() => setCurrent(prev => (prev + 1) % banners.length)}
+          aria-label="Next banner"
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all"
+        >
+          <ChevronRight className="w-5 h-5" strokeWidth={2} />
+        </button>
       </div>
 
-      {/* Arrow buttons */}
-      <button
-        onClick={() => setCurrent(prev => (prev - 1 + banners.length) % banners.length)}
-        aria-label="Previous banner"
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all"
-      >
-        <ChevronLeft className="w-5 h-5" strokeWidth={2} />
-      </button>
-      <button
-        onClick={() => setCurrent(prev => (prev + 1) % banners.length)}
-        aria-label="Next banner"
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all"
-      >
-        <ChevronRight className="w-5 h-5" strokeWidth={2} />
-      </button>
-    </div>
+      {/* ============ MOBILE HERO — uses your actual generated mobile photo, no fake dots since there's only one real image ============ */}
+      <div className="lg:hidden px-5 pt-5">
+        <div
+          className="relative w-full rounded-[32px] overflow-hidden bg-[#050505]"
+          style={{ height: '520px' }}
+        >
+          <img
+            src="/images/model/hero-model-mobile.webp"
+            alt="US Supplements"
+            className="absolute inset-0 w-full h-full object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/35 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/15 to-transparent w-3/4" />
+
+          {/* Real text content */}
+          <div className="relative z-10 h-full flex flex-col justify-between p-6">
+            <div>
+              <p className="text-[#C6FF1E] text-xs font-bold tracking-wide uppercase mb-2">
+                Trusted by thousands.<br />Chosen by champions.
+              </p>
+              <h1 className="text-white font-extrabold leading-[1.15]" style={{ fontSize: '34px' }}>
+                FUEL YOUR<br />GOALS.<br />
+                <span className="text-[#C6FF1E]">THE RIGHT<br />WAY.</span>
+              </h1>
+            </div>
+
+            <div>
+              <Link
+                href="/products"
+                className="inline-flex items-center gap-2 bg-[#C6FF1E] text-[#111111] font-bold rounded-[18px] justify-center"
+                style={{ height: '54px', width: '170px', fontSize: '16px' }}
+              >
+                Shop Now
+                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -127,9 +168,9 @@ function ShopByCategory() {
   ];
 
   return (
-    <div className="py-20 bg-[#F7F8FA]">
-      <div className="max-w-[1600px] mx-auto px-10 lg:px-16">
-        <div className="text-center mb-14">
+    <div className="py-10 md:py-20 bg-[#F7F8FA]">
+      <div className="max-w-[1600px] mx-auto px-5 md:px-10 lg:px-16">
+        <div className="text-center mb-8 md:mb-14">
           <span className="block text-xs font-bold tracking-[0.2em] uppercase text-[#4d7a00] mb-3">
             Shop by category
           </span>
@@ -141,12 +182,12 @@ function ShopByCategory() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 md:gap-6">
           {categories.map(cat => (
             <Link
               key={cat.name}
               href={`/products?search=${encodeURIComponent(cat.name)}`}
-              className="group bg-white border border-[#E5E7EB] rounded-[24px] p-5 flex flex-col items-center gap-4 transition-all duration-300 hover:-translate-y-2 hover:border-[#B7FF1E] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)]"
+              className="group bg-white border border-[#E5E7EB] rounded-[24px] p-3 md:p-5 flex flex-col items-center gap-2.5 md:gap-4 transition-all duration-300 hover:-translate-y-2 hover:border-[#B7FF1E] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)]"
             >
               <div
                 className="w-full aspect-square rounded-2xl flex items-center justify-center p-2"
@@ -203,13 +244,13 @@ export default function HomeClient() {
       <Hero />
 
       {/* TRUST STRIP */}
-      <div className="mx-16 mt-8">
-        <div className="grid grid-cols-4 gap-4">
+      <div className="mx-5 md:mx-16 mt-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {whyUs.map(item => {
             const Icon = item.icon
             return (
-              <div key={item.title} className="border border-gray-200 rounded-2xl p-6 flex flex-col gap-2 bg-white">
-                <Icon className="w-9 h-9 text-green-600 mb-1" />
+              <div key={item.title} className="border border-gray-200 rounded-2xl p-4 md:p-6 flex flex-col gap-2 bg-white">
+                <Icon className="w-7 h-7 md:w-9 md:h-9 text-green-600 mb-1" />
                 <p className="font-bold text-[#1A1A1A] text-[15px]">{item.title}</p>
                 <p className="text-sm text-gray-400 leading-snug">{item.desc}</p>
                 <span className="w-fit text-xs font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-full mt-2">
@@ -220,15 +261,15 @@ export default function HomeClient() {
           })}
         </div>
 
-        <div className="bg-[#F7FFEA] rounded-2xl px-6 py-5 grid grid-cols-3 divide-x divide-[#E3F5B4] mt-4">
+        <div className="bg-[#F7FFEA] rounded-2xl px-3 md:px-6 py-5 grid grid-cols-3 md:divide-x divide-[#E3F5B4] mt-4">
           {trustHighlights.map(item => {
             const Icon = item.icon
             return (
-              <div key={item.title} className="flex items-center gap-3 px-4 first:pl-0">
-                <Icon className="w-6 h-6 text-green-600 shrink-0" />
+              <div key={item.title} className="flex flex-col md:flex-row items-center md:items-center text-center md:text-left gap-1.5 md:gap-3 px-1 md:px-4 md:first:pl-0">
+                <Icon className="w-5 h-5 md:w-6 md:h-6 text-green-600 shrink-0" />
                 <div>
-                  <p className="font-bold text-[#1A1A1A] text-sm">{item.title}</p>
-                  <p className="text-sm text-gray-500 leading-snug">{item.desc}</p>
+                  <p className="font-bold text-[#1A1A1A] text-xs md:text-sm leading-tight">{item.title}</p>
+                  <p className="text-[11px] md:text-sm text-gray-500 leading-snug hidden md:block">{item.desc}</p>
                 </div>
               </div>
             )
@@ -310,22 +351,22 @@ export default function HomeClient() {
       </div>
 
       {/* SHOP BY BRAND */}
-      <div id="shop-by-brand" className="px-16 py-10 bg-gray-50 mt-8 scroll-mt-40">
-        <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-6">Shop by brand</p>
-        <div className="grid grid-cols-6 gap-4">
+      <div id="shop-by-brand" className="px-5 md:px-16 py-8 md:py-10 bg-gray-50 mt-8 scroll-mt-40">
+        <p className="text-xs font-bold text-[#1A1A1A] tracking-[0.15em] uppercase mb-4 md:mb-6">Shop by brand</p>
+        <div className="grid grid-cols-4 md:grid-cols-6 gap-2.5 md:gap-4">
           {brandLogos.map(brand => {
             const brandParam = brand.name === 'OSN' ? 'One Science' : brand.name
             return (
               <Link
                 key={brand.name}
                 href={`/products?brand=${encodeURIComponent(brandParam)}`}
-                className="bg-white border border-gray-100 rounded-2xl h-24 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#C6FF1E] hover:shadow-sm transition-all px-3 group"
+                className="bg-white border border-gray-100 rounded-2xl h-[90px] md:h-24 flex flex-col items-center justify-center gap-1.5 md:gap-2 cursor-pointer hover:border-[#C6FF1E] hover:shadow-sm transition-all px-2 md:px-3 group"
               >
                 {brand.image ? (
                   <img
                     src={brand.image}
                     alt={brand.name}
-                    className="max-h-10 max-w-full object-contain"
+                    className="max-h-8 md:max-h-10 max-w-full object-contain"
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-sm text-[#1A1A1A]">
@@ -342,20 +383,20 @@ export default function HomeClient() {
       </div>
 
       {/* DEAL OF THE DAY */}
-      <div className="mx-16 my-10 bg-[#1A1A1A] rounded-2xl p-8 flex items-center justify-between">
-        <div className="flex flex-col gap-3">
+      <div className="mx-5 md:mx-16 my-8 md:my-10 bg-[#1A1A1A] rounded-2xl p-5 md:p-8 flex flex-col md:flex-row items-center gap-5 md:gap-0 md:justify-between">
+        <div className="flex flex-col gap-3 items-center md:items-start text-center md:text-left">
           <span className="text-[#C6FF1E] text-xs font-bold tracking-[0.15em] uppercase">Deal of the day</span>
-          <p className="text-white text-2xl font-bold">Avvatar Whey Protein 2kg</p>
+          <p className="text-white text-xl md:text-2xl font-bold">Avvatar Whey Protein 2kg</p>
           <div className="flex items-baseline gap-3">
-            <span className="text-white text-3xl font-bold">₹6,199</span>
-            <span className="text-gray-500 line-through text-lg">₹8,649</span>
+            <span className="text-white text-2xl md:text-3xl font-bold">₹6,199</span>
+            <span className="text-gray-500 line-through text-base md:text-lg">₹8,649</span>
             <span className="bg-[#C6FF1E] text-[#1A1A1A] text-xs font-bold px-2.5 py-1 rounded-full">28% OFF</span>
           </div>
           <div className="flex gap-3 mt-1">
             {[['06', 'Hours'], ['42', 'Minutes'], ['18', 'Seconds']].map(([val, label]) => (
-              <div key={label} className="bg-white/10 rounded-xl px-4 py-2 text-center">
-                <p className="text-white text-xl font-bold">{val}</p>
-                <p className="text-gray-500 text-xs uppercase tracking-wider">{label}</p>
+              <div key={label} className="bg-white/10 rounded-xl px-3 md:px-4 py-2 text-center" style={{ minWidth: '60px' }}>
+                <p className="text-white text-lg md:text-xl font-bold">{val}</p>
+                <p className="text-gray-500 text-[10px] md:text-xs uppercase tracking-wider">{label}</p>
               </div>
             ))}
           </div>
@@ -364,35 +405,35 @@ export default function HomeClient() {
           <img
             src="https://ussupplements.in/wp-content/uploads/2025/07/IMG_2951-300x300.webp"
             alt="Avvatar Whey Protein 2kg"
-            className="w-40 h-40 object-contain rounded-2xl"
+            className="w-32 h-32 md:w-40 md:h-40 object-contain rounded-2xl"
           />
-          <button className="bg-[#C6FF1E] text-[#1A1A1A] font-bold px-8 py-3 rounded-xl text-sm hover:brightness-110 transition-all">
+          <button className="bg-[#C6FF1E] text-[#1A1A1A] font-bold px-8 py-3 rounded-xl text-sm hover:brightness-110 transition-all cursor-pointer">
             Grab the deal
           </button>
         </div>
       </div>
 
       {/* OFFER BANNERS */}
-      <div className="px-16 grid grid-cols-2 gap-5">
-        <div className="bg-[#1A1A1A] rounded-2xl p-8 flex items-center justify-between">
+      <div className="px-5 md:px-16 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+        <div className="bg-[#1A1A1A] rounded-2xl p-6 md:p-8 flex items-center justify-between">
           <div>
             <p className="text-[#C6FF1E] text-xs font-bold tracking-widest uppercase mb-2">New users</p>
-            <p className="text-white text-xl font-bold leading-snug">Get ₹200 off<br/>your first order</p>
-            <button className="mt-4 bg-[#C6FF1E] text-[#1A1A1A] font-bold px-5 py-2.5 rounded-xl text-sm">
+            <p className="text-white text-lg md:text-xl font-bold leading-snug">Get ₹200 off<br/>your first order</p>
+            <button className="mt-4 bg-[#C6FF1E] text-[#1A1A1A] font-bold px-5 py-2.5 rounded-xl text-sm cursor-pointer">
               Use code: NEW200
             </button>
           </div>
-          <span className="text-6xl">🎁</span>
+          <span className="text-5xl md:text-6xl shrink-0 ml-3">🎁</span>
         </div>
-        <div className="bg-gray-100 rounded-2xl p-8 flex items-center justify-between">
+        <div className="bg-gray-100 rounded-2xl p-6 md:p-8 flex items-center justify-between">
           <div>
             <p className="text-gray-500 text-xs font-bold tracking-widest uppercase mb-2">Limited time</p>
-            <p className="text-[#1A1A1A] text-xl font-bold leading-snug">Buy 2 get 1 free<br/>on all creatine</p>
-            <button className="mt-4 bg-[#1A1A1A] text-[#C6FF1E] font-bold px-5 py-2.5 rounded-xl text-sm">
+            <p className="text-[#1A1A1A] text-lg md:text-xl font-bold leading-snug">Buy 2 get 1 free<br/>on all creatine</p>
+            <button className="mt-4 bg-[#1A1A1A] text-[#C6FF1E] font-bold px-5 py-2.5 rounded-xl text-sm cursor-pointer">
               Shop creatine →
             </button>
           </div>
-          <span className="text-6xl">⚡</span>
+          <span className="text-5xl md:text-6xl shrink-0 ml-3">⚡</span>
         </div>
       </div>
 
