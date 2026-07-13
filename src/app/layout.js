@@ -4,6 +4,7 @@ import './globals.css'
 import Navbar from '../Components/Navbar'
 import { CartProvider } from '../context/CartContext'
 import { WishlistProvider } from '../context/WishlistContext'
+import { ToastProvider } from '../context/ToastContext'
 
 const geist = Geist({ subsets: ['latin'] })
 
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
       <body className={`${geist.className} bg-white text-[#1A1A1A]`}>
         <CartProvider>
         <WishlistProvider>
+        <ToastProvider>
           <Navbar />
           {children}
           <footer className="bg-[#1A1A1A] text-gray-400 mt-16 px-6 py-10 md:px-10 md:py-12">
@@ -71,6 +73,7 @@ export default function RootLayout({ children }) {
               </div>
             </div>
           </footer>
+        </ToastProvider>
         </WishlistProvider>
         </CartProvider>
       </body>

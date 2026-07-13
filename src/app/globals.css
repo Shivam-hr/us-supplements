@@ -63,6 +63,15 @@
   display: none;
 }
 
+/* Add-to-cart toast notification */
+@keyframes toast-pop {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.toast-pop {
+  animation: toast-pop 0.2s ease-out;
+}
+
 /* Product gallery — small pill dots instead of arrow icons, matching the homepage banner style */
 .product-gallery-swiper .swiper-pagination {
   bottom: 8px !important;

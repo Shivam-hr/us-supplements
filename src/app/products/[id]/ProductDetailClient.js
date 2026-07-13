@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { useCart } from '../../../context/CartContext'
 import { useWishlist } from '../../../context/WishlistContext'
+import { useToast } from '../../../context/ToastContext'
 import ProductCard from '../../../Components/ProductCard'
 import LoginRequiredModal from '../../../Components/LoginRequiredModal'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -20,8 +21,9 @@ import {
 const stackCategories = ['Pre-Workout', 'Creatine', 'BCAA', 'Vitamins']
 
 export default function ProductDetailClient({ id }) {
-  const { addToCart } = useCart()
+  const { addToCart, cartItems } = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
+  const { showToast } = useToast()
   const router = useRouter()
   const [showLoginModal, setShowLoginModal] = useState(false)
 
@@ -35,8 +37,14 @@ export default function ProductDetailClient({ id }) {
   }
 
   const handleAddToCart = async (prod, qty) => {
+    const alreadyInCart = cartItems.some(item => item.id === prod.id)
+    if (alreadyInCart) {
+      router.push('/cart')
+      return
+    }
     if (!(await requireLogin())) return
     addToCart(prod, qty)
+    showToast('Added to cart')
   }
 
   const handleBuyNow = async (prod, qty) => {
@@ -483,13 +491,15 @@ export default function ProductDetailClient({ id }) {
               onClick={() => handleAddToCart(product, quantity)}
               disabled={!product.in_stock}
               className={`flex-1 font-bold text-sm lg:text-base transition-all flex items-center justify-center gap-2 h-12 lg:h-16 rounded-2xl ${
-              product.in_stock
-                ? 'bg-[#B7FF1E] text-[#101214] hover:bg-[#C8FF4A] cursor-pointer'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              !product.in_stock
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : cartItems.some(item => item.id === product.id)
+                ? 'bg-[#101214] text-[#B7FF1E] hover:bg-[#17191C] cursor-pointer'
+                : 'bg-[#B7FF1E] text-[#101214] hover:bg-[#C8FF4A] cursor-pointer'
             }`}
             >
               <ShoppingCart className="w-5 h-5" />
-              Add to Cart
+              {cartItems.some(item => item.id === product.id) ? 'Go to Cart' : 'Add to Cart'}
             </button>
             <button
               onClick={() => handleBuyNow(product, quantity)}

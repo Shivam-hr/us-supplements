@@ -3,9 +3,12 @@ import { useState, useEffect, useMemo, Suspense } from 'react'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 import { useCart } from '../../context/CartContext'
-import { SlidersHorizontal, ArrowUpDown, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { useWishlist } from '../../context/WishlistContext'
+import { useToast } from '../../context/ToastContext'
+import LoginRequiredModal from '../../Components/LoginRequiredModal'
+import { SlidersHorizontal, ArrowUpDown, X, ChevronDown, ChevronUp, Heart, ShoppingCart } from 'lucide-react'
 
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 
 const categories = [
@@ -27,12 +30,41 @@ function ProductCard({ product }) {
   const discount = product.mrp > product.price
     ? Math.round((product.mrp - product.price) / product.mrp * 100)
     : 0
-    const { addToCart } = useCart()
+    const { addToCart, cartItems } = useCart()
+    const { isInWishlist, toggleWishlist } = useWishlist()
+    const { showToast } = useToast()
+    const router = useRouter()
+    const [showLoginModal, setShowLoginModal] = useState(false)
+    const saved = isInWishlist(product.id)
+    const inCart = cartItems.some(item => item.id === product.id)
+
+    const handleToggleWishlist = async (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setShowLoginModal(true)
+        return
+      }
+      toggleWishlist(product)
+    }
 
   return (
+    <>
     <Link href={`/products/${product.id}`}>
       <div className="border border-gray-100 rounded-2xl p-3 hover:border-[#C6FF1E] hover:shadow-sm transition-all cursor-pointer group bg-white h-full flex flex-col">
         <div className="relative">
+          <button
+            onClick={handleToggleWishlist}
+            aria-label={saved ? 'Remove from wishlist' : 'Add to wishlist'}
+            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform z-10"
+          >
+            <Heart
+              className="w-4 h-4"
+              style={{ fill: saved ? '#EF4444' : 'none', color: saved ? '#EF4444' : '#6B7280' }}
+              strokeWidth={2}
+            />
+          </button>
           <img
             src={product.image}
             alt={product.name}
@@ -63,14 +95,25 @@ function ProductCard({ product }) {
         <button
           onClick={e => {
             e.preventDefault()
+            e.stopPropagation()
+            if (inCart) {
+              router.push('/cart')
+              return
+            }
             addToCart(product, 1)
+            showToast('Added to cart')
           }}
-          className="w-full bg-[#1A1A1A] text-[#C6FF1E] text-sm font-semibold py-3 rounded-xl hover:bg-[#333] transition-all cursor-pointer"
+          className={`w-full text-sm font-semibold py-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            inCart ? 'bg-white text-[#1A1A1A] border-2 border-[#1A1A1A]' : 'bg-[#1A1A1A] text-[#C6FF1E] hover:bg-[#333]'
+          }`}
         >
-          Add to cart
+          {inCart && <ShoppingCart className="w-4 h-4" strokeWidth={2} />}
+          {inCart ? 'Go to Cart' : 'Add to cart'}
        </button>
       </div>
     </Link>
+    <LoginRequiredModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
+    </>
   )
 }
 

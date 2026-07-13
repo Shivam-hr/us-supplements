@@ -1,22 +1,32 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Star, ShoppingCart, Heart } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
+import { useToast } from '../context/ToastContext'
 import { supabase } from '../lib/supabase'
 import LoginRequiredModal from './LoginRequiredModal'
 
 export default function ProductCard({ product, showBrand, compact }) {
   const discount = Math.round((product.mrp - product.price) / product.mrp * 100)
-  const { addToCart } = useCart()
+  const { addToCart, cartItems } = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
+  const { showToast } = useToast()
+  const router = useRouter()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const saved = isInWishlist(product.id)
+  const inCart = cartItems.some(item => item.id === product.id)
 
   const handleAddToCart = async (e) => {
     e.preventDefault()
     e.stopPropagation()
+
+    if (inCart) {
+      router.push('/cart')
+      return
+    }
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -25,6 +35,7 @@ export default function ProductCard({ product, showBrand, compact }) {
     }
 
     addToCart(product, 1)
+    showToast('Added to cart')
   }
 
   const handleToggleWishlist = async (e) => {
@@ -104,11 +115,15 @@ export default function ProductCard({ product, showBrand, compact }) {
 
           <button
             onClick={handleAddToCart}
-            className="w-full bg-[#B7FF1E] hover:bg-[#C8FF4A] text-[#101214] text-sm font-semibold rounded-[14px] transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            className={`w-full text-sm font-semibold rounded-[14px] transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+              inCart
+                ? 'bg-[#101214] text-[#B7FF1E] hover:bg-[#17191C]'
+                : 'bg-[#B7FF1E] hover:bg-[#C8FF4A] text-[#101214]'
+            }`}
             style={{ height: compact ? '42px' : '48px' }}
           >
             <ShoppingCart className="w-4 h-4" strokeWidth={2} />
-            Add to Cart
+            {inCart ? 'Go to Cart' : 'Add to Cart'}
           </button>
         </div>
       </Link>
