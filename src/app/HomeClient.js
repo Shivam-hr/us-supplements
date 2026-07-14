@@ -25,6 +25,18 @@ const banners = [
   { id: 5, image: '/images/banners/5.png', alt: 'BeastLife Performance Protein' },
 ]
 
+// Mobile-only promotional banner strip — separate from the hero, which already
+// uses the dedicated model photo. Drop your generated images into
+// public/images/banners/mobile/ with these exact filenames (1080x720px WebP).
+const mobileBanners = [
+  { id: 1, image: '/images/banners/mobile/mobile-01.webp', alt: 'Offer 1' },
+  { id: 2, image: '/images/banners/mobile/mobile-02.webp', alt: 'Offer 2' },
+  { id: 3, image: '/images/banners/mobile/mobile-03.webp', alt: 'Offer 3' },
+  { id: 4, image: '/images/banners/mobile/mobile-04.webp', alt: 'Offer 4' },
+
+]
+
+
 const brandLogos = [
   { name: 'Optimum Nutrition', image: '/images/logo/on.png' },
   { name: 'MuscleBlaze', image: '/images/logo/mb.png' },
@@ -156,6 +168,32 @@ function Hero() {
   )
 }
 
+function MobileBannerStrip() {
+  return (
+    <div className="lg:hidden px-5 mt-5">
+      <Swiper
+        modules={[Autoplay]}
+        autoplay={{ delay: 4000, disableOnInteraction: false }}
+        loop={true}
+        spaceBetween={12}
+        slidesPerView={1}
+        className="mobile-banner-swiper rounded-2xl overflow-hidden"
+      >
+        {mobileBanners.map(banner => (
+          <SwiperSlide key={banner.id}>
+            <img
+              src={banner.image}
+              alt={banner.alt}
+              className="w-full h-auto rounded-2xl"
+              style={{ aspectRatio: '3 / 2', objectFit: 'cover' }}
+            />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
+  )
+}
+
 function ShopByCategory() {
   const categories = [
     { name: "Whey Protein", img: "/images/Category/protein-powder.png" },
@@ -242,6 +280,8 @@ export default function HomeClient() {
     <main className="pb-16 text-base">
 
       <Hero />
+
+      <MobileBannerStrip />
 
       {/* TRUST STRIP */}
       <div className="mx-5 md:mx-16 mt-8">
