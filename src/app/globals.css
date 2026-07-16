@@ -88,3 +88,23 @@
   width: 24px;
   background: #101214;
 }
+
+/* Homepage banner strip — same small pill dots, sitting in the space reserved by pb-7 below the image */
+.mobile-banner-swiper .swiper-pagination,
+.desktop-banner-swiper .swiper-pagination {
+  bottom: 0 !important;
+}
+.mobile-banner-swiper .swiper-pagination-bullet,
+.desktop-banner-swiper .swiper-pagination-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #D1D5DB;
+  opacity: 1;
+  transition: all 0.2s;
+}
+.mobile-banner-swiper .swiper-pagination-bullet-active,
+.desktop-banner-swiper .swiper-pagination-bullet-active {
+  width: 18px;
+  background: #101214;
+}

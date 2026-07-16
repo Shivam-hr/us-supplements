@@ -25,17 +25,50 @@ const banners = [
   { id: 5, image: '/images/banners/5.png', alt: 'BeastLife Performance Protein' },
 ]
 
-// Mobile-only promotional banner strip — separate from the hero, which already
-// uses the dedicated model photo. Drop your generated images into
-// public/images/banners/mobile/ with these exact filenames (1080x720px WebP).
+// Mobile-only banner strip — this IS the mobile hero now (the old text+photo
+// card was removed). Each banner image has its own button baked into the
+// artwork, so instead of making the whole banner clickable, we place an
+// invisible <Link> exactly on top of where that button sits in the image —
+// it feels like the button in the picture is real, because functionally it is.
+//
+// HOW TO TUNE THE HOTSPOT POSITION FOR YOUR REAL IMAGES:
+// Set DEBUG_HOTSPOTS to true below, reload the page — every hotspot will show
+// as a red outline so you can see exactly where it currently sits versus
+// where your button graphic actually is. Adjust the top/left/width/height
+// percentages (all relative to the banner's own box, not the screen) until
+// the red box lines up with your button, then set DEBUG_HOTSPOTS back to false.
+const DEBUG_HOTSPOTS = false
+
 const mobileBanners = [
-  { id: 1, image: '/images/banners/mobile/mobile-01.webp', alt: 'Offer 1' },
-  { id: 2, image: '/images/banners/mobile/mobile-02.webp', alt: 'Offer 2' },
-  { id: 3, image: '/images/banners/mobile/mobile-03.webp', alt: 'Offer 3' },
-  { id: 4, image: '/images/banners/mobile/mobile-04.webp', alt: 'Offer 4' },
-
+  {
+    id: 1,
+    image: '/images/banners/mobile/mobile-01.webp',
+    alt: 'Shop all products',
+    link: '/products',
+    hotspot: { top: '78%', left: '6%', width: '34%', height: '10%' },
+  },
+  {
+    id: 2,
+    image: '/images/banners/mobile/mobile-02.webp',
+    alt: 'Verify product authenticity',
+    link: '/authenticity',
+    hotspot: { top: '86%', left: '6%', width: '34%', height: '9%' },
+  },
+  {
+    id: 3,
+    image: '/images/banners/mobile/mobile-03.webp',
+    alt: 'Shop by brand',
+    link: '/#shop-by-brand',
+    hotspot: { top: '78%', left: '6%', width: '34%', height: '10%' },
+  },
+  {
+    id: 4,
+    image: '/images/banners/mobile/mobile-04.webp',
+    alt: 'Track your order',
+    link: '/track-order',
+    hotspot: { top: '78%', left: '6%', width: '34%', height: '10%' },
+  },
 ]
-
 
 const brandLogos = [
   { name: 'Optimum Nutrition', image: '/images/logo/on.png' },
@@ -125,68 +158,44 @@ function Hero() {
         </button>
       </div>
 
-      {/* ============ MOBILE HERO — uses your actual generated mobile photo, no fake dots since there's only one real image ============ */}
-      <div className="lg:hidden px-5 pt-5">
-        <div
-          className="relative w-full rounded-[32px] overflow-hidden bg-[#050505]"
-          style={{ height: '520px' }}
-        >
-          <img
-            src="/images/model/hero-model-mobile.webp"
-            alt="US Supplements"
-            className="absolute inset-0 w-full h-full object-cover object-top"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/35 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/15 to-transparent w-3/4" />
-
-          {/* Real text content */}
-          <div className="relative z-10 h-full flex flex-col justify-between p-6">
-            <div>
-              <p className="text-[#C6FF1E] text-xs font-bold tracking-wide uppercase mb-2">
-                Trusted by thousands.<br />Chosen by champions.
-              </p>
-              <h1 className="text-white font-extrabold leading-[1.15]" style={{ fontSize: '34px' }}>
-                FUEL YOUR<br />GOALS.<br />
-                <span className="text-[#C6FF1E]">THE RIGHT<br />WAY.</span>
-              </h1>
-            </div>
-
-            <div>
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-2 bg-[#C6FF1E] text-[#111111] font-bold rounded-[18px] justify-center"
-                style={{ height: '54px', width: '170px', fontSize: '16px' }}
-              >
-                Shop Now
-                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
     </>
   )
 }
 
 function MobileBannerStrip() {
   return (
-    <div className="lg:hidden px-5 mt-5">
+    <div className="lg:hidden px-5 pt-5">
       <Swiper
         modules={[Autoplay]}
-        autoplay={{ delay: 4000, disableOnInteraction: false }}
+        autoplay={{ delay: 4500, disableOnInteraction: false }}
         loop={true}
         spaceBetween={12}
         slidesPerView={1}
-        className="mobile-banner-swiper rounded-2xl overflow-hidden"
+        className="mobile-banner-swiper rounded-[32px] overflow-hidden"
       >
         {mobileBanners.map(banner => (
           <SwiperSlide key={banner.id}>
-            <img
-              src={banner.image}
-              alt={banner.alt}
-              className="w-full h-auto rounded-2xl"
-              style={{ aspectRatio: '3 / 2', objectFit: 'cover' }}
-            />
+            <div className="relative w-full" style={{ aspectRatio: '3 / 2' }}>
+              <img
+                src={banner.image}
+                alt={banner.alt}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              {/* Invisible clickable hotspot — sized/positioned to sit exactly
+                  on top of this banner's own baked-in button graphic. */}
+              <Link
+                href={banner.link}
+                aria-label={banner.alt}
+                className="absolute"
+                style={{
+                  top: banner.hotspot.top,
+                  left: banner.hotspot.left,
+                  width: banner.hotspot.width,
+                  height: banner.hotspot.height,
+                  ...(DEBUG_HOTSPOTS ? { border: '2px solid red', background: 'rgba(255,0,0,0.15)' } : {}),
+                }}
+              />
+            </div>
           </SwiperSlide>
         ))}
       </Swiper>
