@@ -6,7 +6,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { ShieldCheckIcon as ShieldSolid, TruckIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { ArrowPathIcon, TagIcon, StarIcon, ShieldCheckIcon as ShieldOutline } from '@heroicons/react/24/outline'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Autoplay } from "swiper/modules";
+import { Autoplay, Pagination } from "swiper/modules";
 import ProductCard from '../Components/ProductCard'
 
 import "swiper/css";
@@ -164,14 +164,15 @@ function Hero() {
 
 function MobileBannerStrip() {
   return (
-    <div className="lg:hidden px-5 pt-5">
+    <div className="lg:hidden">
       <Swiper
-        modules={[Autoplay]}
+        modules={[Autoplay, Pagination]}
         autoplay={{ delay: 4500, disableOnInteraction: false }}
+        pagination={{ clickable: true }}
         loop={true}
-        spaceBetween={12}
+        spaceBetween={0}
         slidesPerView={1}
-        className="mobile-banner-swiper rounded-[32px] overflow-hidden"
+        className="mobile-banner-swiper"
       >
         {mobileBanners.map(banner => (
           <SwiperSlide key={banner.id}>
