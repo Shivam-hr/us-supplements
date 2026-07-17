@@ -86,7 +86,7 @@ const brandLogos = [
   { name: 'Labrada', image: '/images/logo/labrada.png' },
   { name: 'Wellcore', image: '/images/logo/wellcore.png' },
   { name: 'AS-IT-IS', image: '/images/logo/asitis.png' },
-  { name: 'Big Muscle', image: '/images/logo/Bigmes.webp' },
+  { name: 'Big Muscle', image: '/images/logo/Bigmes.jpg' },
   { name: 'Dymatize', image: '/images/logo/dymatize.jpeg' },
   { name: 'OSN', image: '/images/logo/onescience.jpeg' }, 
 ]
