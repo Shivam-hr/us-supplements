@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { generateInvoicePdf } from '../../../lib/generateInvoicePdf'
 
 export async function POST(request) {
   const apiKey = process.env.RESEND_API_KEY
@@ -15,8 +16,10 @@ export async function POST(request) {
       orderId = 'N/A',
       toEmail,
       fullName = 'there',
+      phone = '',
       address = 'N/A',
       total = 0,
+      deliveryCharge = 0,
       paymentMethod = 'N/A',
       items = [],
     } = await request.json()
@@ -56,6 +59,10 @@ export async function POST(request) {
           <p style="margin-top:20px;"><strong>Payment method:</strong> ${paymentMethod}</p>
           <p><strong>Delivery address:</strong><br/>${address}</p>
 
+          <p style="margin-top:16px; padding: 12px; background: #F7F8FA; border-radius: 8px; font-size: 13px;">
+            📎 Your invoice is attached to this email as a PDF for your records.
+          </p>
+
           <p style="margin-top:24px;color:#6B7280;font-size:13px;">
             You can track your order anytime at
             <a href="https://ussuppliments.netlify.app/track-order" style="color:#101214;">ussuppliments.netlify.app/track-order</a>.
@@ -67,11 +74,38 @@ export async function POST(request) {
       </div>
     `
 
+    // Generate the PDF invoice. If this fails for any reason, we still send
+    // the confirmation email without the attachment rather than losing the
+    // whole email — a customer getting confirmation without a PDF is far
+    // better than getting nothing at all.
+    let attachments = []
+    try {
+      const pdfBuffer = await generateInvoicePdf({
+        orderId,
+        fullName,
+        email: toEmail,
+        phone,
+        address,
+        items,
+        total,
+        deliveryCharge,
+        paymentMethod,
+        orderDate: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+      })
+      attachments = [{
+        filename: `US-Supplements-Invoice-${orderId}.pdf`,
+        content: pdfBuffer,
+      }]
+    } catch (pdfErr) {
+      console.error('PDF invoice generation failed, sending email without attachment:', pdfErr.message)
+    }
+
     const { error } = await resend.emails.send({
       from: 'US Supplements <onboarding@resend.dev>', // swap for a verified domain sender once you set one up in Resend
       to: toEmail,
       subject: `Order Confirmed — #${orderId}`,
       html,
+      attachments,
     })
 
     if (error) {

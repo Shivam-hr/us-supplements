@@ -130,7 +130,7 @@ export default function CheckoutPage() {
       console.error('Owner notification request failed:', notifyErr.message)
     }
 
-    // Confirmation email to the customer
+    // Confirmation email to the customer (includes a PDF invoice attachment)
     try {
       await fetch('/api/send-order-email', {
         method: 'POST',
@@ -139,8 +139,10 @@ export default function CheckoutPage() {
           orderId: order.id,
           toEmail: form.email,
           fullName: form.fullName,
+          phone: form.phone,
           address: fullAddress,
           total: finalTotal,
+          deliveryCharge,
           paymentMethod: status === 'pending_cod' ? 'Cash on Delivery' : 'Paid online',
           items: cartItems,
         }),
